@@ -11,14 +11,6 @@ class Vk:
         self.session_api = self.session.get_api()
         self.longpool = VkLongPoll(vk_session)
 
-    # def send_message(self, id, text=None, sticker_num=None):
-    #     self.session.method('messages.send', {
-    #         'user_id': id,
-    #         'message': text,
-    #         'sticker_id': sticker_num,
-    #         'random_id': 0
-    #     })
-
     def send(self, id, text):
         self.session.method('messages.send', {
             'user_id': id,
