@@ -1,8 +1,8 @@
 import time
-import vk_api
+from vk_api.vk_api import VkApi
 from vk_api.longpoll import VkEventType
 from config import Config
-from vk_methods import Vk
+from vk import Vk
 from answer_rules import answer_rules, default_action
 
 
@@ -19,10 +19,10 @@ class App:
             default_action(vk, event.user_id)
 
 
-vk = Vk(vk_api.VkApi(token=Config.token))
+vk = Vk(VkApi(token=Config.token))
 for event in vk.longpool.listen():
     try:
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             App.process_new_message(event)
     except Exception as e:
-        time.sleep(2)  # вести лог?
+        time.sleep(2)  # вести лог в телегу?

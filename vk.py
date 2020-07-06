@@ -3,16 +3,6 @@ import json
 from vk_api.longpoll import VkLongPoll
 
 
-def get_button(label, color, payload=''):
-    return {
-        'action': {
-            'type': 'text',
-            'payload': json.dumps(payload),
-            'label': label
-        },
-        'color': color
-    }
-
 class Vk:
     session = None
     session_api = None
@@ -20,8 +10,8 @@ class Vk:
 
     def __init__(self, vk_session):
         self.session = vk_session
-        self.session_api = self.session.get_api()
-        self.longpool = VkLongPoll(vk_session)
+        self.session_api = self.session.get_api()  # TODO: убрать?
+        self.longpool = VkLongPoll(vk_session)  # TODO: убрать?
 
     def send(self, id, text, buttons=None):
         message = {
@@ -33,7 +23,7 @@ class Vk:
             message.update({'keyboard': str(
                 json.dumps({
                     'one_time': False,
-                    'buttons': [[get_button(button[0], button[1]) for button in button_line] for button_line in buttons]
+                    'buttons': buttons
                 })
             )})
         self.session.method('messages.send', message)
