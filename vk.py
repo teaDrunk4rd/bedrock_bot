@@ -5,13 +5,11 @@ from vk_api.longpoll import VkLongPoll
 
 class Vk:
     session = None
-    session_api = None
-    longpool = None
+    long_pool = None
 
     def __init__(self, vk_session):
         self.session = vk_session
-        self.session_api = self.session.get_api()  # TODO: убрать?
-        self.longpool = VkLongPoll(vk_session)  # TODO: убрать?
+        self.long_pool = VkLongPoll(vk_session)
 
     def send(self, id, text, buttons=None):
         message = {
