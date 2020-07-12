@@ -12,11 +12,11 @@ class App:
         coincidences = [rule for rule in answer_rules.rules if rule['condition'](event)]
         if any(coincidences):
             if event.user_id in Config.admin_ids and 'privilege' in coincidences[0]:
-                coincidences[0]['privilege'](vk, event.user_id)
+                coincidences[0]['privilege'](vk, event)
             elif 'main' in coincidences[0]:
-                coincidences[0]['main'](vk, event.user_id)
+                coincidences[0]['main'](vk, event)
         elif event.text.lower() != '':
-            AnswerRules.default_action(vk, event.user_id)
+            AnswerRules.default_action(vk, event)
 
             # while True:
             #     try:
@@ -36,4 +36,5 @@ for event in vk.long_pool.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             App.process_new_message(event)
     except Exception as e:
-        time.sleep(1)  # вести лог в телегу?
+        AnswerRules.write_log(vk, event, e)
+        time.sleep(1)
