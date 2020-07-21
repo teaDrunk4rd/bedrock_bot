@@ -41,6 +41,15 @@ class Vk:
         self.send(id, text)
         self.send_sticker(id, sticker_num)
 
+    # def get_last_messages(self, id, count=2):
+    #     return self.session.method('messages.getHistory', {
+    #         'count': count,
+    #         'user_id': id
+    #     })['items']
+    #
+    # def check_previous_bot_message(self, id, text):
+    #     return any([message for message in self.get_last_messages(id) if message['text'] == text and message['from_id'] != id])
+
     @staticmethod
     def is_photo(event):
         return event.attachments and event.attachments.get('attach1_type') == 'photo'

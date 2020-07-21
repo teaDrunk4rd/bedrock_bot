@@ -74,22 +74,24 @@ class Buttons:  # TODO: предусмотреть отсутствие кноп
     unblock_donate = get_text_button('Приостановить донаты', 'negative', get_command('donate_unblock'))
     block_stats = get_text_button('Запустить статистику', 'positive', get_command('stats_block'))
     unblock_stats = get_text_button('Приостановить статистику', 'negative', get_command('stats_unblock'))
-    block_abstracting = get_text_button('Запустить рефераты', 'positive', get_command('abstracting_block'))
-    unblock_abstracting = get_text_button('Приостановить рефераты', 'negative', get_command('abstracting_unblock'))
+    block_essay = get_text_button('Запустить рефераты', 'positive', get_command('essay_block'))
+    unblock_essay = get_text_button('Приостановить рефераты', 'negative', get_command('essay_unblock'))
     block_classification = get_text_button('Запустить классификацию', 'positive', get_command('classification_block'))
     unblock_classification = get_text_button('Приостановить классификацию', 'negative', get_command('classification_unblock'))
     block_entertain = get_text_button('Запустить "Насмеши админа"', 'positive', get_command('entertain_block'))
     unblock_entertain = get_text_button('Приостановить "Насмеши админа"', 'negative', get_command('entertain_unblock'))
 
-    user_stats = get_text_button('Статистика', 'positive', get_command('user_stats'))
+    send_screen = get_text_button('Кинуть скрин', 'positive', get_command('send_screen'))
 
-    entertain = get_text_button('Насмешить админа', 'positive', get_command('classification'))
+    user_stats = get_text_button('Статистика', 'secondary', get_command('user_stats'))
 
-    abstracting = get_text_button('Реферат', 'primary', get_command('abstracting'))
+    entertain = get_text_button('Насмешить админа', 'positive', get_command('entertain'))
+
+    essay = get_text_button('Реферат', 'primary', get_command('essay'))
 
     classification = get_text_button('Определить тему шутки', 'primary', get_command('classification'))
 
-    donate_link = get_app_button('Поддержать', Config.donate_app_id, f'-{Config.group_id}')
+    donate = get_app_button('Поддержать', Config.donate_app_id, f'-{Config.group_id}')
 
     @staticmethod
     def get_key(button):
