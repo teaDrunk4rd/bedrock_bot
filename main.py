@@ -8,9 +8,9 @@ from answer_rules import AnswerRules, answer_rules
 class App:
     @staticmethod
     def process_new_message(event):
-        coincidences = [rule for rule in answer_rules.rules if rule['condition'](vk, event)]
+        coincidences = [rule for rule in answer_rules.rules if rule['condition'](vk, event) and ('main' in rule or 'privilege' in rule and event.user_id in Config.admin_ids)]
         if any(coincidences):
-            if event.user_id in Config.admin_ids and 'privilege' in coincidences[0]:
+            if 'privilege' in coincidences[0]:
                 coincidences[0]['privilege'](vk, event)
             elif 'main' in coincidences[0]:
                 coincidences[0]['main'](vk, event)

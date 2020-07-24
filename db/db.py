@@ -40,7 +40,7 @@ class DB:
             self.session.add_all(entity)
         else:
             self.session.add(entity)
-        self.session.commit()
+        self.session.commit()  # вроде как есть autocommit
 
     def update(self, entity, updated_value):
         entity.update(updated_value)

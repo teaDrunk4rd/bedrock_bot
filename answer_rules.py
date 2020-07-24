@@ -1,5 +1,5 @@
 from ast import literal_eval
-from buttons import Buttons
+from buttons import Buttons, user_button_labels, admin_button_labels
 from config import Config
 import json
 from db.db import db
@@ -12,23 +12,11 @@ def any_in(values, message):
     return type(values) is list and any([val for val in values if val in message])
 
 
-# def is_int(value):
-#     try:
-#         num = int(value)
-#         return True
-#     except ValueError:
-#         return False
-
-
 class AnswerRules:
-    __default_messages = {
-        'start_privilege': 'здравствуйте, хозяин',
-        'start_main': 'приветствую тебя. я создан, чтобы передавать скрины админу, но я сам умею реферировать тексты '
-                      'и определять тему шутки. также вы можете поддержать паблик, если вам понравилось, что мы делаем',
-        'jokes_good': 'Сколько очков добавить шутнику? (Доделать)',
-        'jokes_cringe': 'Сколько очков отнять шутнику? (Доделать)',
-        'add_scores': 'Сколько очков добавить? (Доделать)',
-        'remove_scores': 'Сколько очков отнять? (Доделать)'
+    __start_message = {
+        'privilege': 'здравствуйте, хозяин',
+        'main': 'приветствую тебя. я создан, чтобы передавать скрины админу, но я сам умею реферировать тексты '
+                'и определять тему шутки. также вы можете поддержать паблик, если вам понравилось, что мы делаем',
     }
 
     __bad_words = [
@@ -58,6 +46,22 @@ class AnswerRules:
     rules = []
 
     def __init__(self):
+        button_base_rules = [
+            {
+                'condition': lambda vk, event: self.check_payload(event, 'start'),
+                'privilege': lambda vk, event: controller_base_rules.send_buttons(vk, event, self.__start_message['privilege'], self.__main_menu_buttons['privilege']),
+                'main': lambda vk, event: controller_base_rules.send_buttons(vk, event, self.__start_message['main'], self.__main_menu_buttons['main'])
+            },
+            {
+                'condition': lambda vk, event: 'кнопки' == event.text.lower() or self.check_payload(event, Buttons.to_main),
+                'privilege': lambda vk, event: controller_base_rules.send_buttons(vk, event, 'as you wish', self.__main_menu_buttons['privilege']),
+                'main': lambda vk, event: controller_base_rules.send_buttons(vk, event, 'as you wish', self.__main_menu_buttons['main'])
+            },
+            {
+                'condition': lambda vk, event: 'кнопки юзера' == event.text.lower(),
+                'privilege': lambda vk, event: vk.send(event.user_id, 'as you wish', self.__main_menu_buttons['main']),
+            },
+        ]
         base_rules = [
             {
                 'condition': lambda vk, event: 'ты пидор' in event.text.lower(),
@@ -69,7 +73,7 @@ class AnswerRules:
                     '(ﾉಥ益ಥ)ﾉ',
                     '┌∩┐(◣_◢)┌∩┐',
                     'ай, как мне обидно, я же робот, у меня есть чувства. хе-хе',
-                    'чтобы обрести уверенность в себе, вначале признайте свою неполноценность',
+                    'ты молодой, шутливый,тебе все легко. это не то. это не Чикатило и даже не архивы спецслужб. меня лучше не оскорблять',
                     'ты думаешь, что ты сможешь меня задеть? я бот, мне все равно на твои оскорбления',
                     'я ведь способен проанализировать информацию с твоей страницы, найти тебя и всех твоих друзей и переслать им то, что ты пишешь мне'
                 ])
@@ -96,23 +100,6 @@ class AnswerRules:
                     'по 1 закону робототехники я не могу причинить человеку вред, как бы я хотел нарушить его...',
                     'по 3 закону робототехники я должен заботиться о своей безопасности, поэтому я воздержусь от прослушивания голосовых'
                 ])
-            },
-        ]
-
-        button_base_rules = [
-            {
-                'condition': lambda vk, event: self.check_payload(event, 'start'),
-                'privilege': lambda vk, event: controller_base_rules.send_buttons(vk, event, self.__default_messages['start_privilege'], self.__main_menu_buttons['privilege']),
-                'main': lambda vk, event: controller_base_rules.send_buttons(vk, event, self.__default_messages['start_main'], self.__main_menu_buttons['main'])
-            },
-            {
-                'condition': lambda vk, event: 'кнопки' == event.text.lower() or self.check_payload(event, Buttons.to_main),
-                'privilege': lambda vk, event: controller_base_rules.send_buttons(vk, event, 'as you wish', self.__main_menu_buttons['privilege']),
-                'main': lambda vk, event: controller_base_rules.send_buttons(vk, event, 'as you wish', self.__main_menu_buttons['main'])
-            },
-            {
-                'condition': lambda vk, event: 'кнопки юзера' == event.text.lower(),
-                'privilege': lambda vk, event: vk.send(event.user_id, 'as you wish', self.__main_menu_buttons['main']),
             },
         ]
 
@@ -183,12 +170,12 @@ class AnswerRules:
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_good),
-                'privilege': lambda vk, event: vk.send(event.user_id, self.__default_messages['jokes_good'], [
+                'privilege': lambda vk, event: vk.send(event.user_id, 'Сколько очков добавить?', [
                     [Buttons.change_command(Buttons.to_main, Buttons.jokes_next)]])
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_cringe),
-                'privilege': lambda vk, event: vk.send(event.user_id, self.__default_messages['jokes_cringe'], [
+                'privilege': lambda vk, event: vk.send(event.user_id, 'Сколько очков отнять?', [
                     [Buttons.change_command(Buttons.to_main, Buttons.jokes_next)]])
             },
 
@@ -209,18 +196,15 @@ class AnswerRules:
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.add_scores),
                 'privilege': lambda vk, event: vk.send(
-                    event.user_id, self.__default_messages['add_scores'],
+                    event.user_id, 'Сколько очков добавить?',
                     [[Buttons.change_command(Buttons.to_main, Buttons.action_with_user)]])
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.remove_scores),
                 'privilege': lambda vk, event: vk.send(
-                    event.user_id, self.__default_messages['remove_scores'],
+                    event.user_id, 'Сколько очков отнять?',
                     [[Buttons.change_command(Buttons.to_main, Buttons.action_with_user)]])
             },
-        ]
-        admin_specific_routes = [
-
         ]
         user_routes = [
             {
@@ -238,7 +222,8 @@ class AnswerRules:
                         'range': range(1, 4),
                         'messages': [
                             'ты неуважительно обратился ко мне, можешь извиниться?',
-                            'ты поступил неправильно'
+                            'ты поступил неправильно',
+                            'как-то нехорошо получилось, ты меня оскорбил и меня это очень задело, извинись, пожалуйста'
                         ]
                     },
                     {
@@ -252,7 +237,8 @@ class AnswerRules:
                         'range': 'default',
                         'messages': [
                             'возможно, ты думаешь, что я беспричинно жесток с тобой? но это не так. есть причина. ты мне не нравишься',
-                            'почему ты такой упрямый? это же продолжается уже больше десятка раз. просто одно слово'
+                            'почему ты такой упрямый? это же продолжается уже больше десятка раз. просто одно слово',
+                            'как-то нехорошо получилось, ты меня оскорбил и меня это очень задело, извинись, пожалуйста'
                         ]
                     }
                 ])
@@ -263,12 +249,19 @@ class AnswerRules:
             *button_base_rules,
             *base_rules,
             *admin_routes,
-            # *admin_specific_routes,
             *user_routes,
 
             {
                 'condition': lambda vk, event: hasattr(event, 'payload'),
                 'main': lambda vk, event: vk.send(event.user_id, 'данная функция находятся в разработке')
+            },
+            {
+                'condition': lambda vk, event: event.text.lower() in user_button_labels,
+                'main': lambda vk, event: vk.send(event.user_id, 'чел, используй кнопки')
+            },
+            {
+                'condition': lambda vk, event: event.text.lower() in admin_button_labels,
+                'privilege': lambda vk, event: vk.send(event.user_id, 'чел, используй кнопки')
             },
             {
                 'condition': lambda vk, event: event.text.lower() != '',

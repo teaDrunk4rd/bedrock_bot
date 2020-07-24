@@ -43,7 +43,7 @@ def get_command(key, args=None):
     return vk_command
 
 
-class Buttons:  # TODO: предусмотреть отсутствие кнопок у админа при запуске бота и обновление кнопок
+class Buttons:
     to_main = get_text_button('Назад', 'secondary', get_command('to_main'))
 
     screen_check = get_text_button('Проверка скрина', 'primary', get_command('screen_check'))
@@ -102,3 +102,20 @@ class Buttons:  # TODO: предусмотреть отсутствие кноп
         new_button = copy.deepcopy(main_button)
         new_button['action']['payload'] = action_button['action']['payload']
         return new_button
+
+
+user_button_labels, admin_button_labels = [], []
+for a in dir(Buttons):
+    if not a.startswith('__') and not callable(getattr(Buttons, a)):
+        attr = getattr(Buttons, a)
+        label = attr['action']['label'].lower()
+        if attr in [Buttons.send_screen, Buttons.user_stats, Buttons.entertain, Buttons.essay, Buttons.classification, Buttons.donate]:
+            user_button_labels.append(label)
+        else:
+            admin_button_labels.append(label)
+
+
+# button_labels = [
+#     getattr(Buttons, a)['action']['label'].lower()
+#     for a in dir(Buttons) if not a.startswith('__') and not callable(getattr(Buttons, a))
+# ]
