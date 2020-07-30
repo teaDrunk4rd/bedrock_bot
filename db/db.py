@@ -46,13 +46,13 @@ class DB:
         PictureStatus.checked = self.session.query(PictureStatus).filter(PictureStatus.key == 'checked').first().id
         PictureStatus.rejected = self.session.query(PictureStatus).filter(PictureStatus.key == 'rejected').first().id
 
-        Settings.bot_on = self.session.query(Settings).filter(Settings.name == 'bot_on').first().id
-        Settings.screen = self.session.query(Settings).filter(Settings.name == 'screen').first().id
-        Settings.user_stats = self.session.query(Settings).filter(Settings.name == 'user_stats').first().id
-        Settings.entertain = self.session.query(Settings).filter(Settings.name == 'entertain').first().id
-        Settings.essay = self.session.query(Settings).filter(Settings.name == 'essay').first().id
-        Settings.classification = self.session.query(Settings).filter(Settings.name == 'classification').first().id
-        Settings.donate = self.session.query(Settings).filter(Settings.name == 'donate').first().id
+        Settings.bot_on = self.session.query(Settings).filter(Settings.name == 'bot_on').first().value
+        Settings.screen = self.session.query(Settings).filter(Settings.name == 'screen').first().value
+        Settings.user_stats = self.session.query(Settings).filter(Settings.name == 'user_stats').first().value
+        Settings.entertain = self.session.query(Settings).filter(Settings.name == 'entertain').first().value
+        Settings.essay = self.session.query(Settings).filter(Settings.name == 'essay').first().value
+        Settings.classification = self.session.query(Settings).filter(Settings.name == 'classification').first().value
+        Settings.donate = self.session.query(Settings).filter(Settings.name == 'donate').first().value
 
     def add(self, entity):
         if type(entity) is list:

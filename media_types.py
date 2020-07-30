@@ -1,4 +1,3 @@
-
 class MediaTypes:
     photo = 'photo'
     video = 'video'
