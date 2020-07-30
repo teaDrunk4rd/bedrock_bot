@@ -48,7 +48,7 @@ class Buttons:
 
     screen_check = get_text_button('Проверка скрина', 'primary', get_command('screen_check'))
     screen_confirm = get_text_button('Подтвердить', 'positive', get_command('screen_confirm'))
-    screen_reject = get_text_button('Отвергнуть', 'negative', get_command('screen_reject'))
+    screen_reject = get_text_button('Отклонить', 'negative', get_command('screen_reject'))
 
     admin_stats = get_text_button('Статистика', 'primary', get_command('admin_stats'))
 
@@ -103,19 +103,19 @@ class Buttons:
         new_button['action']['payload'] = action_button['action']['payload']
         return new_button
 
-
-user_button_labels, admin_button_labels = [], []
-for a in dir(Buttons):
-    if not a.startswith('__') and not callable(getattr(Buttons, a)):
-        attr = getattr(Buttons, a)
-        label = attr['action']['label'].lower()
-        if attr in [Buttons.send_screen, Buttons.user_stats, Buttons.entertain, Buttons.essay, Buttons.classification, Buttons.donate]:
-            user_button_labels.append(label)
-        else:
-            admin_button_labels.append(label)
+    @staticmethod
+    def get_label(button):
+        return button['action']['label'].lower()
 
 
-# button_labels = [
-#     getattr(Buttons, a)['action']['label'].lower()
-#     for a in dir(Buttons) if not a.startswith('__') and not callable(getattr(Buttons, a))
-# ]
+user_button_labels = [
+    Buttons.get_label(button) for button in
+    [
+        Buttons.to_main, Buttons.send_screen, Buttons.user_stats, Buttons.entertain, Buttons.essay,
+        Buttons.classification, Buttons.donate
+    ]
+]
+admin_button_labels = [
+    Buttons.get_label(getattr(Buttons, a))
+    for a in dir(Buttons) if not a.startswith('__') and not callable(getattr(Buttons, a))
+]

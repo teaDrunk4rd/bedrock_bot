@@ -2,6 +2,7 @@ import json
 import random
 import sys
 from vk_api.longpoll import VkLongPoll
+from media_types import MediaTypes
 
 
 class Vk:
@@ -12,13 +13,14 @@ class Vk:
         self.session = vk_session
         self.long_pool = VkLongPoll(vk_session)
 
-    def send(self, id, text, buttons=None, forward_messages=None):
+    def send(self, id, text, buttons=None, forward_messages=None, attachments=None):
         if type(text) is list:
             text = text[random.randint(0, len(text) - 1)]
         message = {
             'user_id': id,
             'message': text,
             'forward_messages': forward_messages,
+            'attachment': attachments,
             'random_id': random.randint(0, sys.maxsize * sys.maxsize * 2)
         }
         if buttons:
@@ -52,8 +54,8 @@ class Vk:
 
     @staticmethod
     def is_photo(event):
-        return event.attachments and event.attachments.get('attach1_type') == 'photo'
+        return event.attachments and event.attachments.get('attach1_type') == MediaTypes.photo
 
     @staticmethod
     def is_audio_msg(event):
-        return event.attachments and event.attachments.get('attach1_kind') == 'audiomsg'
+        return event.attachments and event.attachments.get('attach1_kind') == MediaTypes.audiomsg

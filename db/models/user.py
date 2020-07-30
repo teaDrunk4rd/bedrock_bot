@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, SmallInteger, Boolean
+from sqlalchemy import Column, Integer, SmallInteger, Boolean, String
 from db.models.base import Base
 
 
@@ -8,10 +8,11 @@ class User(Base):
     apologies_count = Column(SmallInteger, default=0)
     banned = Column(Boolean, default=False)
     scores = Column(Integer, default=0)
+    path = Column(String, default='')
 
-    def __init__(self, user_id, apologies_count=0, banned=False, scores=0):
+    def __init__(self, user_id, apologies_count=0, banned=False, scores=0, path=''):
         self.user_id = user_id
         self.apologies_count = apologies_count
         self.banned = banned
         self.scores = scores
-
+        self.path = path

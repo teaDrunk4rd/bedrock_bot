@@ -4,14 +4,15 @@ from db.db import db
 
 
 def send_buttons(vk, event, message, buttons=None):
-    if not db.session.query(User).filter(User.user_id == event.user_id).first():
-        db.add(User(event.user_id))
+    user = db.get_user(event.user_id)
+    db.update(user, {User.path: ''})
     vk.send(event.user_id, message, buttons)
 
 
 def insult(vk, event, message, buttons=None):
+    user = db.get_user(event.user_id)
     if event.user_id not in Config.admin_ids:
-        db.update(db.session.query(User).filter(User.user_id == event.user_id), {User.apologies_count: User.apologies_count + 1})
+        db.update(user, {User.apologies_count: User.apologies_count + 1})
     vk.send(event.user_id, message, buttons)  # TODO: декоратор для этого?
 
 

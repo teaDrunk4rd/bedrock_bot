@@ -1,11 +1,10 @@
 from ast import literal_eval
 from buttons import Buttons, user_button_labels, admin_button_labels
 from config import Config
-import json
 from db.db import db
 from db.models.user import User
 from vk import Vk
-from controllers import controller_base_rules
+from controllers import controller_base_rules, controller_screens
 
 
 def any_in(values, message):
@@ -78,10 +77,6 @@ class AnswerRules:
                     'я ведь способен проанализировать информацию с твоей страницы, найти тебя и всех твоих друзей и переслать им то, что ты пишешь мне'
                 ])
             },
-            # {
-            #     'condition': lambda vk, event: Vk.is_photo(event),
-            #     'main': lambda vk, event: vk.send(event.user_id, 'проверяю твою фотокарточку, позже отпишу')
-            # }, TODO: тут изменить логику, добавить отдельно кнопку для отправки скрина
             {
                 'condition': lambda vk, event: Vk.is_audio_msg(event),
                 'main': lambda vk, event: vk.send(event.user_id, [
@@ -106,32 +101,22 @@ class AnswerRules:
         admin_routes = [
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.screen_check),
-                'privilege': lambda vk, event: vk.send(
-                    event.user_id, 'Vk link: ФИО\n'
-                                   'Previous photos links\n'
-                                   'and photo attachment',
-                    [[Buttons.screen_confirm, Buttons.screen_reject],
-                     [Buttons.to_main]]
-                )
+                'privilege': lambda vk, event: controller_screens.check_screen_first(vk, event)
             },
             {
-                'condition': lambda vk, event: self.check_payload(event, Buttons.screen_confirm) or self.check_payload(event, Buttons.screen_reject),
-                'privilege': lambda vk, event: vk.send(
-                    event.user_id, 'Next:\n'
-                                   'Vk link: ФИО\n'
-                                   'Previous photos links\n'
-                                   'and photo attachment',
-                    [[Buttons.screen_confirm, Buttons.screen_reject],
-                     [Buttons.to_main]]
-                )
+                'condition': lambda vk, event: self.check_payload(event, Buttons.screen_confirm),
+                'privilege': lambda vk, event: controller_screens.check_screen(vk, event)
             },
-
+            {
+                'condition': lambda vk, event: self.check_payload(event, Buttons.screen_reject),
+                'privilege': lambda vk, event: controller_screens.check_screen(vk, event)
+            },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.admin_stats),
                 'privilege': lambda vk, event: vk.send(
                     event.user_id, 'Кол-во проверенных скринов: 0\n'
                                    'Кол-во непроверенных скринов: 0\n'
-                                   'Кол-во отвергнутых скринов: 0\n'
+                                   'Кол-во отклоненных скринов: 0\n'
                                    'Кол-во непроверенных приколов: 0\n' +
                                    ''.join([f'{i+1}. ФИО vk link: 0\n' for i in range(10)])
                 )
@@ -216,7 +201,7 @@ class AnswerRules:
                 'main': lambda vk, event: controller_base_rules.get_apology(vk, event, 'да ладно уж, чего там. ты сам прости меня', self.__main_menu_buttons['main'])
             },
             {
-                'condition': lambda vk, event: event.user_id not in Config.admin_ids and db.session.query(User).filter(User.user_id == event.user_id).first().apologies_count > 0,
+                'condition': lambda vk, event: event.user_id not in Config.admin_ids and db.session.query(User).filter(User.user_id == event.user_id).first() and db.session.query(User).filter(User.user_id == event.user_id).first().apologies_count > 0,
                 'main': lambda vk, event: controller_base_rules.demand_apology(vk, event, [
                     {
                         'range': range(1, 4),
@@ -243,6 +228,15 @@ class AnswerRules:
                     }
                 ])
             },
+            {
+                'condition': lambda vk, event: self.check_payload(event, Buttons.send_screen),
+                'main': lambda vk, event:
+                    controller_screens.send_screen_button(vk, event, 'жду твой скрин, передам его админу', [[Buttons.to_main]])
+            },
+            {
+                'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.send_screen),
+                'main': lambda vk, event: controller_screens.send_screen(vk, event)
+            }
         ]
 
         self.rules = [
@@ -270,21 +264,8 @@ class AnswerRules:
         ]
 
     @staticmethod
-    def write_log(vk, event, e):
-        try:
-            request_params = [param for param in e.error["request_params"] if param['key'] not in ['message', 'keyboard', 'user_id']]
-            request_params.append({'keyboard': json.loads(next(iter([param for param in e.error["request_params"] if param['key'] == 'keyboard']), None)['value'])})
-            msg = f'{e.error["error_code"]}: {e.error["error_msg"]}\n' \
-                  f'{json.dumps(request_params, indent=2, ensure_ascii=False)}'
-            vk.send(Config.log_receiver, msg, forward_messages=event.message_id)
-        except:
-            vk.send(Config.log_receiver, '\n'.join(e.args), forward_messages=event.message_id)
-
-    @staticmethod
     def check_payload(event, key):
         if type(key) is dict:  # is button
             key = Buttons.get_key(key)
         return hasattr(event, 'payload') and literal_eval(event.payload).get('command') == key
 
-
-answer_rules = AnswerRules()
