@@ -8,17 +8,19 @@ class Picture(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     status_id = Column(Integer, ForeignKey('picture_statuses.id'), nullable=False)
-    photo_link = Column(String, nullable=False)
+    url = Column(String, nullable=False)
+    name = Column(String, nullable=False)
     message_id = Column(String, nullable=False)
     comment = Column(String, nullable=True)
 
     user = relationship('User', backref='pictures')
     status = relationship('PictureStatus', backref='pictures')
 
-    def __init__(self, user_id, status_id, photo_link, message_id, comment=None):
+    def __init__(self, user_id, status_id, url, name, message_id, comment=None):
         self.user_id = user_id
         self.status_id = status_id
-        self.photo_link = photo_link
+        self.url = url
+        self.name = name
         self.message_id = message_id
         self.comment = comment
 

@@ -2,7 +2,7 @@ from ast import literal_eval
 from buttons import Buttons
 
 
-class Controller:  # TODO: декоратор для отправки сообщений?
+class Controller:
     handlers = []
 
     start_message = {

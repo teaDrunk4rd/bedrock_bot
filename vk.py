@@ -52,6 +52,10 @@ class Vk:
     # def check_previous_bot_message(self, id, text):
     #     return any([message for message in self.get_last_messages(id) if message['text'] == text and message['from_id'] != id])
 
+    def get_message_attachments(self, message_id):
+        attachments = self.session.method('messages.getById', {'message_ids': message_id})
+        return attachments['items'][0]['attachments'] if attachments['count'] != 0 else None
+
     @staticmethod
     def is_photo(event):
         return event.attachments and event.attachments.get('attach1_type') == MediaTypes.photo

@@ -26,7 +26,7 @@ class DB:
         if not any(self.session.query(PictureStatus)):
             self.add([
                 PictureStatus('Не проверен', 'not_checked'),
-                PictureStatus('Проверен', 'checked'),
+                PictureStatus('Принят', 'confirmed'),
                 PictureStatus('Отклонен', 'rejected')
             ])
         if not any(self.session.query(Settings)):
@@ -43,7 +43,7 @@ class DB:
 
     def __set_consts(self):
         PictureStatus.not_checked = self.session.query(PictureStatus).filter(PictureStatus.key == 'not_checked').first().id
-        PictureStatus.checked = self.session.query(PictureStatus).filter(PictureStatus.key == 'checked').first().id
+        PictureStatus.confirmed = self.session.query(PictureStatus).filter(PictureStatus.key == 'confirmed').first().id
         PictureStatus.rejected = self.session.query(PictureStatus).filter(PictureStatus.key == 'rejected').first().id
 
         Settings.bot_on = self.session.query(Settings).filter(Settings.name == 'bot_on').first().value
