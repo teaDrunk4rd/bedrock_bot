@@ -56,6 +56,13 @@ class Vk:
         attachments = self.session.method('messages.getById', {'message_ids': message_id})
         return attachments['items'][0]['attachments'] if attachments['count'] != 0 else None
 
+    def get_user_name(self, user_id):
+        try:
+            username = self.session.method('users.get', {'user_ids': user_id})
+            return f'{username[0]["first_name"]} {username[0]["last_name"]}'
+        except:
+            return None
+
     @staticmethod
     def is_photo(event):
         return event.attachments and event.attachments.get('attach1_type') == MediaTypes.photo

@@ -1,5 +1,11 @@
 from buttons import Buttons
+from config import Config
 from controllers.controller import Controller
+from db.db import db
+from db.models.joke import Joke
+from db.models.picture import Picture
+from db.models.picture_status import PictureStatus
+from db.models.user import User
 
 
 class ControllerStatistics(Controller):
@@ -7,12 +13,40 @@ class ControllerStatistics(Controller):
         self.handlers = [
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.admin_stats),
-                'privilege': lambda vk, event: vk.send(
-                    event.user_id, 'Кол-во проверенных скринов: 0\n'
-                                   'Кол-во непроверенных скринов: 0\n'
-                                   'Кол-во отклоненных скринов: 0\n'
-                                   'Кол-во непроверенных приколов: 0\n' +
-                                   ''.join([f'{i + 1}. ФИО vk link: 0\n' for i in range(10)])
-                )
+                'privilege': lambda vk, event: self.admin_stats(vk, event)
+            },
+            {
+                'condition': lambda vk, event: self.check_payload(event, Buttons.user_stats),
+                'main': lambda vk, event: self.user_stats(vk, event)
             },
         ]
+
+    @staticmethod
+    def admin_stats(vk, event):
+        not_checked_screens = db.session.query(Picture).filter(Picture.status_id == PictureStatus.not_checked).count()
+        confirmed_screens = db.session.query(Picture).filter(Picture.status_id == PictureStatus.confirmed).count()
+        rejected_screens = db.session.query(Picture).filter(Picture.status_id == PictureStatus.rejected).count()
+        not_viewed_jokes = db.session.query(Joke).filter(Joke.viewed != True).count()
+        users = db.session.query(User).filter(User.user_id.notin_(Config.admin_ids)).order_by(User.scores).all()[:10]
+        user_stats = ''.join([
+            f'{num + 1}. {vk.get_user_name(user.user_id)}(vk.com/id{user.user_id}): {user.scores}\n'
+            for num, user in enumerate(users)
+        ])
+        vk.send(event.user_id, f'кол-во непроверенных скринов: {not_checked_screens}\n'
+                               f'кол-во принятых скринов: {confirmed_screens}\n'
+                               f'кол-во отклоненных скринов: {rejected_screens}\n'
+                               f'кол-во непросмотренных приколов: {not_viewed_jokes}\n' +
+                user_stats)
+
+    @staticmethod
+    def user_stats(vk, event):
+        scores = db.session.query(User).filter(User.user_id == event.user_id).first().scores
+        not_checked_screens = db.session.query(Picture).filter(Picture.user_id == event.user_id, Picture.status_id == PictureStatus.not_checked).count()
+        confirmed_screens = db.session.query(Picture).filter(Picture.user_id == event.user_id, Picture.status_id == PictureStatus.confirmed).count()
+        rejected_screens = db.session.query(Picture).filter(Picture.user_id == event.user_id, Picture.status_id == PictureStatus.rejected).count()
+        not_viewed_jokes = db.session.query(Joke).filter(Joke.user_id == event.user_id, Joke.score > 0).count()
+        vk.send(event.user_id, f'кол-во очков: {scores}\n'
+                               f'кол-во непроверенных скринов: {not_checked_screens}\n'
+                               f'кол-во принятых скринов: {confirmed_screens}\n'
+                               f'кол-во отклоненных скринов: {rejected_screens}\n'
+                               f'кол-во засчитанных приколов: {not_viewed_jokes}\n')
