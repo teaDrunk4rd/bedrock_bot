@@ -25,11 +25,13 @@ class ControllerBaseRules(Controller):
             },
 
             {
-                'condition': lambda vk, event: 'ты пидор' in event.text.lower(),
+                'condition': lambda vk, event: 'ты пидор' in event.text.lower() and
+                                               db.get_user_path(event.user_id) != Buttons.get_key(Buttons.entertain),
                 'main': lambda vk, event: vk.send_message_sticker(event.user_id, 'а может ты пидор?', 49)
             },
             {
-                'condition': lambda vk, event: self.any_in(self.bad_words, event.text.lower()),
+                'condition': lambda vk, event: self.any_in(self.bad_words, event.text.lower()) and
+                                               db.get_user_path(event.user_id) != Buttons.get_key(Buttons.entertain),
                 'main': lambda vk, event: self.insult(vk, event)
             },
             {
@@ -52,18 +54,36 @@ class ControllerBaseRules(Controller):
                 ])
             },
             {
+                'condition': lambda vk, event: Vk.is_photo(event) and db.check_user_current_path(event.user_id, ''),
+                'main': lambda vk, event: vk.send(event.user_id, [
+                    #'0/10. уберите эту страхоуебищную подзалупину в ту пучину, откуда вы ее вытащили',
+                    'ты страхоебина ебаная',
+                    '',
+                    'усос',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                ])
+            },
+            {
                 'condition': lambda vk, event: self.any_in([
                     'прости',
                     'извини',
+                    'сори',
+                    'сорямба',
                     'не хотел обидеть тебя'
-                ], event.text.lower()),
+                ], event.text.lower()) and db.get_user_path(event.user_id) != Buttons.get_key(Buttons.entertain),
                 'main': lambda vk, event: self.get_apology(vk, event)
             },
             {
                 'condition': lambda vk, event:
                     event.user_id not in Config.admin_ids and
                     db.session.query(User).filter(User.user_id == event.user_id).first() and
-                    db.session.query(User).filter(User.user_id == event.user_id).first().apologies_count > 0,
+                    db.session.query(User).filter(User.user_id == event.user_id).first().apologies_count > 0 and
+                    db.get_user_path(event.user_id) != Buttons.get_key(Buttons.entertain),
                 'main': lambda vk, event: self.demand_apology(vk, event)
             },
         ]
@@ -83,7 +103,7 @@ class ControllerBaseRules(Controller):
             '(ﾉಥ益ಥ)ﾉ',
             '┌∩┐(◣_◢)┌∩┐',
             'ай, как мне обидно, я же робот, у меня есть чувства. хе-хе',
-            'ты молодой, шутливый,тебе все легко. это не то. это не Чикатило и даже не архивы спецслужб. меня лучше не оскорблять',
+            'ты молодой, шутливый, тебе все легко. это не то. это не Чикатило и даже не архивы спецслужб. меня лучше не оскорблять',
             'ты думаешь, что ты сможешь меня задеть? я бот, мне все равно на твои оскорбления',
             'я ведь способен проанализировать информацию с твоей страницы, найти тебя и всех твоих друзей и переслать им то, что ты пишешь мне'
         ])
@@ -125,5 +145,8 @@ class ControllerBaseRules(Controller):
     def get_apology(self, vk, event):
         user = db.session.query(User).filter(User.user_id == event.user_id)
         if user.first():
-            db.update(user, {User.apologies_count: 0})
-            vk.send(event.user_id, 'да ладно уж, чего там. ты сам прости меня', self.main_menu_buttons['main'])
+            if user.first().apologies_count != 0:
+                db.update(user, {User.apologies_count: 0})
+                vk.send(event.user_id, 'да ладно уж, чего там. ты сам прости меня', self.main_menu_buttons['main'])
+            else:
+                vk.send(event.user_id, 'чеееел, за что ты извиняешься? забей')

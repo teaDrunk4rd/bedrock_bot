@@ -10,11 +10,11 @@ class Joke(Base):
     user_id = Column('user_id', Integer, ForeignKey('users.user_id'), nullable=False)
     message_id = Column(String, nullable=False)
     viewed = Column(Boolean, default=False)
-    score = Column(String, default=None)
+    score = Column(Integer, default=0)
 
     user = relationship('User', backref='jokes')
 
-    def __init__(self, user_id, message_id, viewed=False, score=None):
+    def __init__(self, user_id, message_id, viewed=False, score=0):
         self.user_id = user_id
         self.message_id = message_id
         self.viewed = viewed

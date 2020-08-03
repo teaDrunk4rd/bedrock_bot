@@ -23,6 +23,7 @@ class App:
             *ControllerActionWithUser().handlers,
             *ControllerJokes().handlers,
             *ControllerLowPriority().handlers
+            # TODO: случайный пост
         ]
 
     def process_new_message(self, event):

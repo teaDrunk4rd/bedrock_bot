@@ -43,15 +43,6 @@ class Vk:
         self.send(id, text)
         self.send_sticker(id, sticker_num)
 
-    # def get_last_messages(self, id, count=2):
-    #     return self.session.method('messages.getHistory', {
-    #         'count': count,
-    #         'user_id': id
-    #     })['items']
-    #
-    # def check_previous_bot_message(self, id, text):
-    #     return any([message for message in self.get_last_messages(id) if message['text'] == text and message['from_id'] != id])
-
     def get_message_attachments(self, message_id):
         attachments = self.session.method('messages.getById', {'message_ids': message_id})
         return attachments['items'][0]['attachments'] if attachments['count'] != 0 else None

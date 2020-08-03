@@ -22,7 +22,7 @@ class ControllerScreens(Controller):
             {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.screen_reject),
                 'privilege': lambda vk, event: self.reject_screen(vk, event)
-            },
+            },  # TODO: отклонить с комментарием
 
             {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.send_screen),
@@ -34,17 +34,20 @@ class ControllerScreens(Controller):
             }
         ]
 
-    @staticmethod
-    def check_screen_first(vk, event):
-        vk.send(event.user_id, 'сейчас по очереди я буду скидывать тебе скрины. твоя задача — принимать или отклонять их.\n'
-                               'если принимаешь, то +1 балл челу, если отклоняешь, то +0 баллов.\n'
-                               'в сообщении я прикрепляю сам скрин, пересылаю сообщение от которого скрин был взят и '
-                               'указываю список ссылок на предыдущиие скрины чела, чтобы ты мог сравнить их')
-        ControllerScreens.check_screen(vk, event)
+    def __get_pics(self):
+        return db.session.query(Picture).filter(Picture.status_id == PictureStatus.not_checked).order_by(Picture.id).all()
 
-    @staticmethod
-    def check_screen(vk, event):  # TODO: улучшить, чтобы несколько админов могли проверять фото?
-        pictures = db.session.query(Picture).filter(Picture.status_id == PictureStatus.not_checked).order_by(Picture.id).all()
+    def check_screen_first(self, vk, event):
+        pics = self.__get_pics()
+        if any(pics):
+            vk.send(event.user_id, 'сейчас по очереди я буду скидывать тебе скрины. твоя задача — принимать или отклонять их.\n'
+                                   'если принимаешь, то +1 балл челу, если отклоняешь, то +0 баллов.\n'
+                                   'в сообщении я прикрепляю сам скрин, пересылаю сообщение от которого скрин был взят и '
+                                   'указываю список ссылок на предыдущие скрины чела, чтобы ты мог сравнить их')
+        self.check_screen(vk, event)
+
+    def check_screen(self, vk, event):  # TODO: улучшить, чтобы несколько админов могли проверять фото!
+        pictures = self.__get_pics()
         if any(pictures):
             picture = pictures[0]
             previous_photos = '\n'.join([
@@ -63,9 +66,8 @@ class ControllerScreens(Controller):
         else:
             vk.send(event.user_id, 'картинки закончились')
 
-    @staticmethod
-    def confirm_screen(vk, event):
-        pictures = db.session.query(Picture).filter(Picture.status_id == PictureStatus.not_checked).order_by(Picture.id).all()
+    def confirm_screen(self, vk, event):
+        pictures = self.__get_pics()
         if any(pictures):
             picture = pictures[0]
             picture.status_id = PictureStatus.confirmed
@@ -76,13 +78,12 @@ class ControllerScreens(Controller):
             vk.send(picture.user_id, f'поздравляю, один из твоих скринов приняли. '
                                      f'на данный момент у тебя {picture.user.scores} {scores_plural}',
                     forward_messages=picture.message_id)
-            ControllerScreens.check_screen(vk, event)
+            self.check_screen(vk, event)
         else:
             vk.send(event.user_id, 'картинки закончились')
 
-    @staticmethod
-    def reject_screen(vk, event):
-        pictures = db.session.query(Picture).filter(Picture.status_id == PictureStatus.not_checked).order_by(Picture.id).all()
+    def reject_screen(self, vk, event):
+        pictures = self.__get_pics()
         if any(pictures):
             picture = pictures[0]
             picture.status_id = PictureStatus.rejected
@@ -90,7 +91,7 @@ class ControllerScreens(Controller):
 
             vk.send(picture.user_id, f'твой скрин не приняли. проверь его, может с ним что-то не так?',
                     forward_messages=picture.message_id)
-            ControllerScreens.check_screen(vk, event)  # TODO: комментарий от админа
+            self.check_screen(vk, event)  # TODO: комментарий от админа
         else:
             vk.send(event.user_id, 'картинки закончились')
 
@@ -142,15 +143,3 @@ class ControllerScreens(Controller):
                 vk.send(event.user_id, Config.error_message)
         else:
             vk.send(event.user_id, 'что-то не вижу картинки в твоем сообщении')
-
-    @staticmethod
-    def plural_form(n, form1, form2, form5):
-        n = abs(n) % 100
-        n1 = n % 10
-        if 10 < n < 20:
-            return form5
-        if 1 < n1 < 5:
-            return form2
-        if n1 == 1:
-            return form1
-        return form5

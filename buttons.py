@@ -46,13 +46,14 @@ def get_command(key, args=None):
 class Buttons:
     to_main = get_text_button('Назад', 'secondary', get_command('to_main'))
 
-    screen_check = get_text_button('Проверка скрина', 'primary', get_command('screen_check'))
+    screen_check = get_text_button('Проверка скринов', 'primary', get_command('screen_check'))
     screen_confirm = get_text_button('Подтвердить', 'positive', get_command('screen_confirm'))
     screen_reject = get_text_button('Отклонить', 'negative', get_command('screen_reject'))
 
     admin_stats = get_text_button('Статистика', 'primary', get_command('admin_stats'))
 
     jokes_check = get_text_button('Проверка приколов', 'primary', get_command('jokes_check'))
+    jokes_refresh = get_text_button('Назад', 'secondary', get_command('jokes_refresh'))
     jokes_good = get_text_button('Godnota', 'positive', get_command('jokes_good'))
     jokes_cringe = get_text_button('Cringe', 'negative', get_command('jokes_cringe'))
     jokes_next = get_text_button('Следующая', 'secondary', get_command('jokes_next'))
@@ -67,7 +68,7 @@ class Buttons:
 
     bot_control = get_text_button('Управление ботом', 'primary', get_command('bot_control'))
     start_bot = get_text_button('Запустить', 'positive', get_command('start_bot'))  # TODO: среди запустить/приостановить должна показываться только 1 кнопка
-    pause_bot = get_text_button('Приостановить', 'negative', get_command('pause_bot'))  # TODO: в payload передать json {bot:start}, чтобы была 1 ф-я обработки
+    pause_bot = get_text_button('Приостановить', 'negative', get_command('pause_bot'))
     block_screen = get_text_button('Запустить скрины', 'positive', get_command('screen_block'))
     unblock_screen = get_text_button('Приостановить скрины', 'negative', get_command('screen_unblock'))
     block_donate = get_text_button('Запустить донаты', 'positive', get_command('donate_block'))

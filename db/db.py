@@ -71,11 +71,14 @@ class DB:
             self.add(User(user_id))
         return user
 
+    def get_user_path(self, user_id):
+        user = self.get_user(user_id).first()
+        return user.path
+
     def check_user_current_path(self, user_id, path):
         if type(path) is dict:  # is button
             path = Buttons.get_key(path)
-        user = self.get_user(user_id).first()
-        return user.path == path
+        return self.get_user_path(user_id) == path
 
 
 db = DB()

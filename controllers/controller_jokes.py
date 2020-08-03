@@ -1,5 +1,8 @@
 from buttons import Buttons
 from controllers.controller import Controller
+from db.db import db
+from db.models.joke import Joke
+from db.models.user import User
 
 
 class ControllerJokes(Controller):
@@ -7,43 +10,150 @@ class ControllerJokes(Controller):
         self.handlers = [
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_check),
-                'privilege': lambda vk, event: vk.send(
-                    event.user_id,
-                    'Ты можешь добавить или отнять баллы за шутку, учитывай, что 1 скрин — 1 балл.\n'
-                    'Vk link: ФИО\n'
-                    'Прикол:\n'
-                    'В купе поезда из Москвы едут русский, китаец и грузин. Китаец звонит по мобильнику, поговорил, выкинул в окно. Русский и грузин - недоумевают. Китаец: "Да у нас в Китае этого г***, чего жалеть-то.."'
-                    'Грузин режет арбуз, сьедает кусочек, остальное в окно.Русский и китаец -типа, ты чего? Грузин говорит:"Да у нас этих арбузов как грязи- вот и выкинул".'
-                    'Русский смотрит, смотрит... потом встает, и выкидывает в окно Грузин. Китаец: "Зачем??" Русский говорит:"У нас этого добра навалом".',
-                    [[Buttons.jokes_good, Buttons.jokes_cringe],
-                     [Buttons.jokes_next, Buttons.to_main]]
-                )
+                'privilege': lambda vk, event: self.check_joke_first(vk, event)
+            },
+            {
+                'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_refresh),
+                'privilege': lambda vk, event: self.joke_refresh(vk, event)
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_next),
-                'privilege': lambda vk, event: vk.send(
-                    event.user_id,
-                    'Next:\n'
-                    'Vk link: ФИО\n'
-                    'Прикол:\n'
-                    'Едут в поезде русский, поляк, и немец, и сними девушка. У девушки очень разболелся живот, и она пукнула. Тут поляк сказал:\n'
-                    '— Простите у меня очень сильно болит живот, чего-то не то съел в столовой…\n'
-                    'Едут дальше. Девушка опять пукнула, тут немец:\n'
-                    '— Прошу прощения, переел.\n'
-                    'Едут дальше. Русский захотел выйти покурить и сказал:\n'
-                    '— Пацаны, если она еще раз пукнет, скажите что это я…\n',
-                    [[Buttons.jokes_good, Buttons.jokes_cringe],
-                     [Buttons.jokes_next, Buttons.to_main]]
-                )
+                'privilege': lambda vk, event: self.check_next_joke(vk, event)
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_good),
-                'privilege': lambda vk, event: vk.send(event.user_id, 'Сколько очков добавить?', [
-                    [Buttons.change_command(Buttons.to_main, Buttons.jokes_next)]])
+                'privilege': lambda vk, event: self.confirm_joke_button(vk, event)
+            },
+            {
+                'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.jokes_good),
+                'privilege': lambda vk, event: self.confirm_joke(vk, event)
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_cringe),
-                'privilege': lambda vk, event: vk.send(event.user_id, 'Сколько очков отнять?', [
-                    [Buttons.change_command(Buttons.to_main, Buttons.jokes_next)]])
+                'privilege': lambda vk, event: self.reject_joke_button(vk, event)
             },
+            {
+                'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.jokes_cringe),
+                'privilege': lambda vk, event: self.reject_joke(vk, event)
+            },
+
+            {
+                'condition': lambda vk, event: self.check_payload(event, Buttons.entertain),
+                'main': lambda vk, event: self.entertain_admin_button(vk, event)
+            },
+            {
+                'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.entertain),
+                'main': lambda vk, event: self.entertain_admin(vk, event)
+            }
         ]
+
+    def __get_jokes(self):
+        return db.session.query(Joke).filter(Joke.viewed == False).order_by(Joke.id).all()
+
+    def __over(self, vk, event):
+        db.update(db.get_user(event.user_id), {User.path: ''})
+        vk.send(event.user_id, [
+            'шутки кончились',
+            'шуток нет'
+        ], self.main_menu_buttons['privilege'])
+
+    def check_joke(self, vk, event):
+        jokes = self.__get_jokes()
+        if any(jokes):
+            joke = jokes[0]
+            vk.send(
+                event.user_id, '',
+                [[Buttons.jokes_good, Buttons.jokes_cringe],
+                 [Buttons.jokes_next, Buttons.to_main]], joke.message_id
+            )
+        else:
+            self.__over(vk, event)
+
+    def check_joke_first(self, vk, event):
+        jokes = self.__get_jokes()
+        if any(jokes):
+            vk.send(event.user_id, 'ты можешь добавить или отнять баллы за шутку, учитывай, что 1 скрин — 1 балл')
+        self.check_joke(vk, event)
+
+    def joke_refresh(self, vk, event):
+        user = db.get_user(event.user_id)
+        db.update(user, {User.path: ''})
+        self.check_joke(vk, event)
+
+    def check_next_joke(self, vk, event):
+        jokes = self.__get_jokes()
+        if any(jokes):
+            joke = jokes[0]
+            joke.viewed = True
+            db.session.commit()
+            self.check_joke(vk, event)
+        else:
+            self.__over(vk, event)
+
+    @staticmethod
+    def confirm_joke_button(vk, event):
+        user = db.get_user(event.user_id)
+        db.update(user, {User.path: Buttons.get_key(Buttons.jokes_good)})
+        vk.send(event.user_id, 'сколько очков добавить?', [[Buttons.jokes_refresh]])
+
+    @staticmethod
+    def reject_joke_button(vk, event):
+        user = db.get_user(event.user_id)
+        db.update(user, {User.path: Buttons.get_key(Buttons.jokes_cringe)})
+        vk.send(event.user_id, 'сколько очков отнять?', [[Buttons.jokes_refresh]])
+
+    def confirm_joke(self, vk, event):
+        try:
+            scores = int(event.text)
+            if scores < 0:
+                scores *= -1
+            jokes = self.__get_jokes()
+            if any(jokes):
+                joke = jokes[0]
+                joke.viewed = True
+                joke.score = scores
+                db.update(db.get_user(joke.user_id), {User.scores: User.scores + scores})
+                vk.send(joke.user_id,
+                        f'поздравляю, твою шутку оценили на {scores} {self.plural_form(scores, "очко", "очка", "очков")}\n'
+                        f'на данный момент у тебя {joke.user.scores} {self.plural_form(joke.user.scores, "очко", "очка", "очков")}',
+                        forward_messages=joke.message_id)
+                self.check_joke(vk, event)
+            else:
+                self.__over(vk, event)
+        except ValueError:
+            vk.send(event.user_id, 'ты ввел хуйню какую-то, мне нужно число')
+
+    def reject_joke(self, vk, event):
+        try:
+            scores = int(event.text)
+            if scores < 0:
+                scores *= -1
+            jokes = self.__get_jokes()
+            if any(jokes):
+                joke = jokes[0]
+                joke.viewed = True
+                joke.score = scores * -1
+                db.update(db.get_user(joke.user_id), {User.scores: User.scores - scores})
+                vk.send(joke.user_id,
+                        f'твою шутку оценили на -{scores} {self.plural_form(scores, "очко", "очка", "очков")}\n'
+                        f'на данный момент у тебя {joke.user.scores} {self.plural_form(joke.user.scores, "очко", "очка", "очков")}',
+                        forward_messages=joke.message_id)
+                self.check_joke(vk, event)
+            else:
+                self.__over(vk, event)
+        except ValueError:
+            vk.send(event.user_id, 'ты ввел хуйню какую-то, мне нужно число')
+
+    @staticmethod
+    def entertain_admin_button(vk, event):
+        user = db.get_user(event.user_id)
+        db.update(user, {User.path: Buttons.get_key(Buttons.entertain)})
+        message = 'присылай шутку, админ оценит и добавит баллы, но если скинешь кринж — то баллы отнимут.' \
+                  ' юмор — несомненно субъективен, но ты можешь рискнуть'
+        if any(user.first().jokes):
+            message = [message, 'шути']
+        vk.send(event.user_id, message, [[Buttons.to_main]])
+
+    def entertain_admin(self, vk, event):
+        db.add(Joke(event.user_id, event.message_id))
+        vk.send(event.user_id, 'принято в обработку', self.main_menu_buttons['main'])
