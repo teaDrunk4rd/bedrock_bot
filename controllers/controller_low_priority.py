@@ -1,4 +1,4 @@
-from buttons import user_button_labels, admin_button_labels
+from buttons import button_labels, Buttons
 from controllers.controller import Controller
 from controllers.controller_base_rules import ControllerBaseRules
 
@@ -15,11 +15,14 @@ class ControllerLowPriority(Controller):
                 )
             },
             {
-                'condition': lambda vk, event: event.text.lower() in user_button_labels,  # TODO: предусмотреть настройки
+                'condition': lambda vk, event: event.text.lower() in [
+                    Buttons.get_label(Buttons.to_main),
+                    *[Buttons.get_label(button) for line in self.main_menu_buttons['main'] for button in line]
+                ],
                 'main': lambda vk, event: vk.send(event.user_id, 'чел, используй кнопки')
             },
             {
-                'condition': lambda vk, event: event.text.lower() in admin_button_labels,  # TODO: предусмотреть настройки
+                'condition': lambda vk, event: event.text.lower() in button_labels,
                 'admin': lambda vk, event: vk.send(event.user_id, 'чел, используй кнопки')
             },
             {

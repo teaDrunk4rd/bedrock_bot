@@ -113,14 +113,7 @@ class Buttons:
         return button['action']['label'].lower()
 
 
-user_button_labels = [
-    Buttons.get_label(button) for button in
-    [
-        Buttons.to_main, Buttons.send_screen, Buttons.user_stats, Buttons.make_joke, Buttons.essay,
-        Buttons.classification, Buttons.donate
-    ]
-]
-admin_button_labels = [
+button_labels = [
     Buttons.get_label(getattr(Buttons, a))
     for a in dir(Buttons) if not a.startswith('__') and not callable(getattr(Buttons, a))
 ]
