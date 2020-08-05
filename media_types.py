@@ -15,7 +15,7 @@ class MediaTypes:
     __photo_qualities = ['w', 'z', 'y', 'r', 'q', 'p', 'o', 'x', 'm', 's']  # порядок убывания по качеству
 
     @staticmethod
-    def get_max_quality_url(sizes):  # TODO: протестить на разных размерах фото
+    def get_max_quality_url(sizes):
         for quality in MediaTypes.__photo_qualities:
             try:
                 return next(iter([

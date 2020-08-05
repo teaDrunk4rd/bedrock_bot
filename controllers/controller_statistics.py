@@ -5,6 +5,7 @@ from db.db import db
 from db.models.joke import Joke
 from db.models.picture import Picture
 from db.models.picture_status import PictureStatus
+from db.models.settings import Settings
 from db.models.user import User
 
 
@@ -13,10 +14,11 @@ class ControllerStatistics(Controller):
         self.handlers = [
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.admin_stats),
-                'privilege': lambda vk, event: self.admin_stats(vk, event)
+                'admin': lambda vk, event: self.admin_stats(vk, event)
             },
             {
-                'condition': lambda vk, event: self.check_payload(event, Buttons.user_stats),
+                'condition': lambda vk, event: self.check_payload(event, Buttons.user_stats) and
+                                               self.check_access(Settings.user_stats, event.user_id),
                 'main': lambda vk, event: self.user_stats(vk, event)
             },
         ]

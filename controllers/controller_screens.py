@@ -4,6 +4,7 @@ from controllers.controller import Controller
 from db.db import db
 from db.models.picture import Picture
 from db.models.picture_status import PictureStatus
+from db.models.settings import Settings
 from db.models.user import User
 from media_types import MediaTypes
 
@@ -13,19 +14,20 @@ class ControllerScreens(Controller):
         self.handlers = [
             {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.screen_check),
-                'privilege': lambda vk, event: self.check_screen_first(vk, event)
+                'admin': lambda vk, event: self.check_screen_first(vk, event)
             },
             {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.screen_confirm),
-                'privilege': lambda vk, event: self.confirm_screen(vk, event)
+                'admin': lambda vk, event: self.confirm_screen(vk, event)
             },
             {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.screen_reject),
-                'privilege': lambda vk, event: self.reject_screen(vk, event)
+                'admin': lambda vk, event: self.reject_screen(vk, event)
             },  # TODO: отклонить с комментарием
 
             {
-                'condition': lambda vk, event: Controller.check_payload(event, Buttons.send_screen),
+                'condition': lambda vk, event: Controller.check_payload(event, Buttons.send_screen) and
+                                               self.check_access(Settings.screen, event.user_id),
                 'main': lambda vk, event: self.send_screen_button(vk, event)
             },
             {
@@ -91,7 +93,7 @@ class ControllerScreens(Controller):
 
             vk.send(picture.user_id, f'твой скрин не приняли. проверь его, может с ним что-то не так?',
                     forward_messages=picture.message_id)
-            self.check_screen(vk, event)  # TODO: комментарий от админа
+            self.check_screen(vk, event)
         else:
             vk.send(event.user_id, 'картинки закончились')
 
@@ -140,6 +142,6 @@ class ControllerScreens(Controller):
                 else:
                     vk.send(event.user_id, 'я же просил скрины')
             else:
-                vk.send(event.user_id, Config.error_message)
+                vk.send(event.user_id, Config.user_error_message)
         else:
             vk.send(event.user_id, 'что-то не вижу картинки в твоем сообщении')

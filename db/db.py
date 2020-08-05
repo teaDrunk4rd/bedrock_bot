@@ -31,10 +31,10 @@ class DB:
             ])
         if not any(self.session.query(Settings)):
             self.add([
-                Settings('bot_on', True),
+                Settings('bot', True),
                 Settings('screen', True),
                 Settings('user_stats', True),
-                Settings('entertain', True),
+                Settings('make_joke', True),
                 Settings('essay', True),
                 Settings('classification', True),
                 Settings('donate', True)
@@ -46,13 +46,13 @@ class DB:
         PictureStatus.confirmed = self.session.query(PictureStatus).filter(PictureStatus.key == 'confirmed').first().id
         PictureStatus.rejected = self.session.query(PictureStatus).filter(PictureStatus.key == 'rejected').first().id
 
-        Settings.bot_on = self.session.query(Settings).filter(Settings.name == 'bot_on').first().value
-        Settings.screen = self.session.query(Settings).filter(Settings.name == 'screen').first().value
-        Settings.user_stats = self.session.query(Settings).filter(Settings.name == 'user_stats').first().value
-        Settings.entertain = self.session.query(Settings).filter(Settings.name == 'entertain').first().value
-        Settings.essay = self.session.query(Settings).filter(Settings.name == 'essay').first().value
-        Settings.classification = self.session.query(Settings).filter(Settings.name == 'classification').first().value
-        Settings.donate = self.session.query(Settings).filter(Settings.name == 'donate').first().value
+        Settings.bot = self.session.query(Settings).filter(Settings.name == 'bot').first().value == 'true'
+        Settings.screen = self.session.query(Settings).filter(Settings.name == 'screen').first().value == 'true'
+        Settings.make_joke = self.session.query(Settings).filter(Settings.name == 'make_joke').first().value == 'true'
+        Settings.essay = self.session.query(Settings).filter(Settings.name == 'essay').first().value == 'true'
+        Settings.classification = self.session.query(Settings).filter(Settings.name == 'classification').first().value == 'true'
+        Settings.user_stats = self.session.query(Settings).filter(Settings.name == 'user_stats').first().value == 'true'
+        Settings.donate = self.session.query(Settings).filter(Settings.name == 'donate').first().value == 'true'
 
     def add(self, entity):
         if type(entity) is list:

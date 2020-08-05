@@ -2,6 +2,7 @@ from buttons import Buttons
 from controllers.controller import Controller
 from db.db import db
 from db.models.joke import Joke
+from db.models.settings import Settings
 from db.models.user import User
 
 
@@ -10,40 +11,40 @@ class ControllerJokes(Controller):
         self.handlers = [
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_check),
-                'privilege': lambda vk, event: self.check_joke_first(vk, event)
+                'admin': lambda vk, event: self.check_joke_first(vk, event)
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_refresh),
-                'privilege': lambda vk, event: self.joke_refresh(vk, event)
+                'admin': lambda vk, event: self.joke_refresh(vk, event)
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_next),
-                'privilege': lambda vk, event: self.check_next_joke(vk, event)
+                'admin': lambda vk, event: self.check_next_joke(vk, event)
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_good),
-                'privilege': lambda vk, event: self.confirm_joke_button(vk, event)
+                'admin': lambda vk, event: self.confirm_joke_button(vk, event)
             },
             {
                 'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.jokes_good),
-                'privilege': lambda vk, event: self.confirm_joke(vk, event)
+                'admin': lambda vk, event: self.confirm_joke(vk, event)
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_cringe),
-                'privilege': lambda vk, event: self.reject_joke_button(vk, event)
+                'admin': lambda vk, event: self.reject_joke_button(vk, event)
             },
             {
                 'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.jokes_cringe),
-                'privilege': lambda vk, event: self.reject_joke(vk, event)
+                'admin': lambda vk, event: self.reject_joke(vk, event)
             },
 
             {
-                'condition': lambda vk, event: self.check_payload(event, Buttons.entertain),
-                'main': lambda vk, event: self.entertain_admin_button(vk, event)
+                'condition': lambda vk, event: self.check_payload(event, Buttons.make_joke) and self.check_access(Settings.make_joke, event.user_id),
+                'main': lambda vk, event: self.make_admin_laugh_button(vk, event)
             },
             {
-                'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.entertain),
-                'main': lambda vk, event: self.entertain_admin(vk, event)
+                'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.make_joke),
+                'main': lambda vk, event: self.make_admin_laugh(vk, event)
             }
         ]
 
@@ -55,7 +56,7 @@ class ControllerJokes(Controller):
         vk.send(event.user_id, [
             'шутки кончились',
             'шуток нет'
-        ], self.main_menu_buttons['privilege'])
+        ], self.main_menu_buttons['admin'])
 
     def check_joke(self, vk, event):
         jokes = self.__get_jokes()
@@ -145,15 +146,15 @@ class ControllerJokes(Controller):
             vk.send(event.user_id, 'ты ввел хуйню какую-то, мне нужно число')
 
     @staticmethod
-    def entertain_admin_button(vk, event):
+    def make_admin_laugh_button(vk, event):
         user = db.get_user(event.user_id)
-        db.update(user, {User.path: Buttons.get_key(Buttons.entertain)})
+        db.update(user, {User.path: Buttons.get_key(Buttons.make_joke)})
         message = 'присылай шутку, админ оценит и добавит баллы, но если скинешь кринж — то баллы отнимут.' \
                   ' юмор — несомненно субъективен, но ты можешь рискнуть'
         if any(user.first().jokes):
             message = [message, 'шути']
         vk.send(event.user_id, message, [[Buttons.to_main]])
 
-    def entertain_admin(self, vk, event):
+    def make_admin_laugh(self, vk, event):
         db.add(Joke(event.user_id, event.message_id))
         vk.send(event.user_id, 'принято в обработку', self.main_menu_buttons['main'])

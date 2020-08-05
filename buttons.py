@@ -50,7 +50,7 @@ class Buttons:
     screen_confirm = get_text_button('Подтвердить', 'positive', get_command('screen_confirm'))
     screen_reject = get_text_button('Отклонить', 'negative', get_command('screen_reject'))
 
-    admin_stats = get_text_button('Статистика', 'primary', get_command('admin_stats'))
+    admin_stats = get_text_button('Статистика', 'secondary', get_command('admin_stats'))
 
     jokes_check = get_text_button('Проверка приколов', 'primary', get_command('jokes_check'))
     jokes_refresh = get_text_button('Назад', 'secondary', get_command('jokes_refresh'))
@@ -58,7 +58,7 @@ class Buttons:
     jokes_cringe = get_text_button('Cringe', 'negative', get_command('jokes_cringe'))
     jokes_next = get_text_button('Следующая', 'secondary', get_command('jokes_next'))
 
-    training = get_text_button('Обучение шуткам', 'primary', get_command('training'))  # TODO: брать из БД классы и строить кнопки при старте бота и при добавлении класса
+    training = get_text_button('Обучение шуткам', 'secondary', get_command('training'))  # TODO: брать из БД классы и строить кнопки при старте бота и при добавлении класса
 
     action_with_user = get_text_button('Действия с пользователем', 'primary', get_command('action_with_user'))
     unban_user = get_text_button('Разбанить', 'positive', get_command('unban_user'))  # TODO: среди бана/разбана должна показываться только 1 кнопка
@@ -66,27 +66,27 @@ class Buttons:
     add_scores = get_text_button('Добавить очки', 'positive', get_command('add_scores'))
     remove_scores = get_text_button('Отнять очки', 'negative', get_command('remove_scores'))
 
-    bot_control = get_text_button('Управление ботом', 'primary', get_command('bot_control'))
-    start_bot = get_text_button('Запустить', 'positive', get_command('start_bot'))  # TODO: среди запустить/приостановить должна показываться только 1 кнопка
-    pause_bot = get_text_button('Приостановить', 'negative', get_command('pause_bot'))
-    block_screen = get_text_button('Запустить скрины', 'positive', get_command('screen_block'))
-    unblock_screen = get_text_button('Приостановить скрины', 'negative', get_command('screen_unblock'))
-    block_donate = get_text_button('Запустить донаты', 'positive', get_command('donate_block'))
-    unblock_donate = get_text_button('Приостановить донаты', 'negative', get_command('donate_unblock'))
-    block_stats = get_text_button('Запустить статистику', 'positive', get_command('stats_block'))
-    unblock_stats = get_text_button('Приостановить статистику', 'negative', get_command('stats_unblock'))
-    block_essay = get_text_button('Запустить рефераты', 'positive', get_command('essay_block'))
-    unblock_essay = get_text_button('Приостановить рефераты', 'negative', get_command('essay_unblock'))
-    block_classification = get_text_button('Запустить классификацию', 'positive', get_command('classification_block'))
-    unblock_classification = get_text_button('Приостановить классификацию', 'negative', get_command('classification_unblock'))
-    block_entertain = get_text_button('Запустить "Насмеши админа"', 'positive', get_command('entertain_block'))
-    unblock_entertain = get_text_button('Приостановить "Насмеши админа"', 'negative', get_command('entertain_unblock'))
+    settings = get_text_button('Управление ботом', 'primary', get_command('settings'))
+    block_bot = get_text_button('Остановить бота', 'negative', get_command('block', 'bot'))
+    unblock_bot = get_text_button('Запустить бота', 'positive', get_command('unblock', 'bot'))
+    block_screen = get_text_button('Остановить скрины', 'negative', get_command('block', 'screen'))
+    unblock_screen = get_text_button('Запустить скрины', 'positive', get_command('unblock', 'screen'))
+    block_make_joke = get_text_button('Остановить "Насмеши админа"', 'negative', get_command('block', 'make_joke'))
+    unblock_make_joke = get_text_button('Запустить "Насмеши админа"', 'positive', get_command('unblock', 'make_joke'))
+    block_essay = get_text_button('Остановить рефераты', 'negative', get_command('block', 'essay'))
+    unblock_essay = get_text_button('Запустить рефераты', 'positive', get_command('unblock', 'essay'))
+    block_classification = get_text_button('Остановить классификацию', 'negative', get_command('block', 'classification'))
+    unblock_classification = get_text_button('Запустить классификацию', 'positive', get_command('unblock', 'classification'))
+    block_stats = get_text_button('Остановить статистику', 'negative', get_command('block', 'user_stats'))
+    unblock_stats = get_text_button('Запустить статистику', 'positive', get_command('unblock', 'user_stats'))
+    block_donate = get_text_button('Остановить донаты', 'negative', get_command('block', 'donate'))
+    unblock_donate = get_text_button('Запустить донаты', 'positive', get_command('unblock', 'donate'))
 
     send_screen = get_text_button('Кинуть скрин', 'positive', get_command('send_screen'))
 
     user_stats = get_text_button('Статистика', 'secondary', get_command('user_stats'))
 
-    entertain = get_text_button('Насмешить админа', 'positive', get_command('entertain'))
+    make_joke = get_text_button('Насмешить админа', 'positive', get_command('make_joke'))
 
     essay = get_text_button('Реферат', 'primary', get_command('essay'))
 
@@ -97,6 +97,10 @@ class Buttons:
     @staticmethod
     def get_key(button):
         return button['action']['payload']['command']
+
+    @staticmethod
+    def get_args(button):
+        return button['action']['payload'].get('args')
 
     @staticmethod
     def change_command(main_button, action_button):
@@ -112,7 +116,7 @@ class Buttons:
 user_button_labels = [
     Buttons.get_label(button) for button in
     [
-        Buttons.to_main, Buttons.send_screen, Buttons.user_stats, Buttons.entertain, Buttons.essay,
+        Buttons.to_main, Buttons.send_screen, Buttons.user_stats, Buttons.make_joke, Buttons.essay,
         Buttons.classification, Buttons.donate
     ]
 ]

@@ -8,7 +8,6 @@ class PictureStatus(Base):
     name = Column(String, nullable=False)
     key = Column(String, nullable=False)
 
-    # TODO: сделать адекватней
     not_checked, confirmed, rejected = None, None, None
 
     def __init__(self, name, key):

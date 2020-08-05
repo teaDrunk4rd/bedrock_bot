@@ -11,27 +11,31 @@ class ControllerBaseRules(Controller):
         self.handlers = [
             {
                 'condition': lambda vk, event: self.check_payload(event, 'start'),
-                'privilege': lambda vk, event: self.send_buttons(vk, event, self.start_message['privilege'], self.main_menu_buttons['privilege']),
+                'admin': lambda vk, event: self.send_buttons(vk, event, self.start_message['admin'], self.main_menu_buttons['admin']),
                 'main': lambda vk, event: self.send_buttons(vk, event, self.start_message['main'], self.main_menu_buttons['main'])
             },
             {
                 'condition': lambda vk, event: 'кнопки' == event.text.lower() or self.check_payload(event, Buttons.to_main),
-                'privilege': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['privilege']),
+                'admin': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['admin']),
                 'main': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['main'])
             },
             {
                 'condition': lambda vk, event: 'кнопки юзера' == event.text.lower(),
-                'privilege': lambda vk, event: vk.send(event.user_id, 'as you wish', self.main_menu_buttons['main']),
+                'admin': lambda vk, event: vk.send(event.user_id, 'as you wish', [
+                    [Buttons.send_screen, Buttons.make_joke],
+                    [Buttons.essay, Buttons.classification],
+                    [Buttons.user_stats, Buttons.donate]
+                ]),
             },
 
             {
                 'condition': lambda vk, event: 'ты пидор' in event.text.lower() and
-                                               db.get_user_path(event.user_id) != Buttons.get_key(Buttons.entertain),
+                                               db.get_user_path(event.user_id) != Buttons.get_key(Buttons.make_joke),
                 'main': lambda vk, event: vk.send_message_sticker(event.user_id, 'а может ты пидор?', 49)
             },
             {
                 'condition': lambda vk, event: self.any_in(self.bad_words, event.text.lower()) and
-                                               db.get_user_path(event.user_id) != Buttons.get_key(Buttons.entertain),
+                                               db.get_user_path(event.user_id) != Buttons.get_key(Buttons.make_joke),
                 'main': lambda vk, event: self.insult(vk, event)
             },
             {
@@ -56,16 +60,17 @@ class ControllerBaseRules(Controller):
             {
                 'condition': lambda vk, event: Vk.is_photo(event) and db.check_user_current_path(event.user_id, ''),
                 'main': lambda vk, event: vk.send(event.user_id, [
-                    #'0/10. уберите эту страхоуебищную подзалупину в ту пучину, откуда вы ее вытащили',
-                    'ты страхоебина ебаная',
-                    '',
-                    'усос',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
+                    '0/10 ААААААААААА, мои биомеханические глаза, удали фотку быстрее!!!',
+                    '1/10 не отправляй мне такие фотографии больше',
+                    '2/10 не обижайся на меня, но это очень плохо, очень',
+                    '3/10 модным ты будешь выглядеть только на фоне деревенщин и реднеков',
+                    '4/10 почти нормально. я бы даже сказал неплохо, но не скажу',
+                    '5/10 с пивком покатит',
+                    '6/10 ну, на дайвинчике ты может будешь пользоваться некоторой популярностью',
+                    '7/10 хм, для кожаного ублюдка ты красив(-а)',
+                    '8/10 поздравляю, ты выиграл(-а) в генетическую рулетку, тебе очень повезло, ты выглядишь прекрасно',
+                    '9/10 я скажу тебе по секрету: ты красивей админа. судя по моей статистике, если у тебя есть харизма, то ты будешь пользоваться популярностью на ютабе/тиктоке',
+                    '10/10 О БОГИ, удаляйте интернет, лучше вы уже не найдете. ты достоин(-а) возведения на пантеон богов',
                 ])
             },
             {
@@ -75,7 +80,7 @@ class ControllerBaseRules(Controller):
                     'сори',
                     'сорямба',
                     'не хотел обидеть тебя'
-                ], event.text.lower()) and db.get_user_path(event.user_id) != Buttons.get_key(Buttons.entertain),
+                ], event.text.lower()) and db.get_user_path(event.user_id) != Buttons.get_key(Buttons.make_joke),
                 'main': lambda vk, event: self.get_apology(vk, event)
             },
             {
@@ -83,7 +88,7 @@ class ControllerBaseRules(Controller):
                     event.user_id not in Config.admin_ids and
                     db.session.query(User).filter(User.user_id == event.user_id).first() and
                     db.session.query(User).filter(User.user_id == event.user_id).first().apologies_count > 0 and
-                    db.get_user_path(event.user_id) != Buttons.get_key(Buttons.entertain),
+                    db.get_user_path(event.user_id) != Buttons.get_key(Buttons.make_joke),
                 'main': lambda vk, event: self.demand_apology(vk, event)
             },
         ]

@@ -6,6 +6,7 @@ from controllers.controller_base_rules import ControllerBaseRules
 from controllers.controller_jokes import ControllerJokes
 from controllers.controller_low_priority import ControllerLowPriority
 from controllers.controller_screens import ControllerScreens
+from controllers.controller_settings import ControllerSettings
 from controllers.controller_statistics import ControllerStatistics
 from vk import Vk
 
@@ -16,12 +17,15 @@ class App:
 
     def __init__(self):
         self.vk = Vk(VkApi(token=Config.token))
+        ControllerBaseRules().update_user_buttons()
         self.handlers = [
             *ControllerBaseRules().handlers,
             *ControllerScreens().handlers,
             *ControllerStatistics().handlers,
             *ControllerActionWithUser().handlers,
             *ControllerJokes().handlers,
+            *ControllerSettings().handlers,
+
             *ControllerLowPriority().handlers
             # TODO: случайный пост
         ]
@@ -30,11 +34,11 @@ class App:
         try:
             coincidence = next((
                 rule for rule in self.handlers
-                if rule['condition'](self.vk, event) and ('main' in rule or 'privilege' in rule and event.user_id in Config.admin_ids)
+                if rule['condition'](self.vk, event) and ('main' in rule or 'admin' in rule and event.user_id in Config.admin_ids)
             ))
             if coincidence:
-                if 'privilege' in coincidence and event.user_id in Config.admin_ids:
-                    coincidence['privilege'](self.vk, event)
+                if 'admin' in coincidence and event.user_id in Config.admin_ids:
+                    coincidence['admin'](self.vk, event)
                 elif 'main' in coincidence:
                     coincidence['main'](self.vk, event)
         except StopIteration:
