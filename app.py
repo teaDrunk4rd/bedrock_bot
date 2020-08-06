@@ -8,6 +8,8 @@ from controllers.controller_low_priority import ControllerLowPriority
 from controllers.controller_screens import ControllerScreens
 from controllers.controller_settings import ControllerSettings
 from controllers.controller_statistics import ControllerStatistics
+from db.db import db
+from db.models.user import User
 from vk import Vk
 
 
@@ -32,15 +34,17 @@ class App:
 
     def process_new_message(self, event):
         try:
-            coincidence = next((
-                rule for rule in self.handlers
-                if rule['condition'](self.vk, event) and ('main' in rule or 'admin' in rule and event.user_id in Config.admin_ids)
-            ))
-            if coincidence:
-                if 'admin' in coincidence and event.user_id in Config.admin_ids:
-                    coincidence['admin'](self.vk, event)
-                elif 'main' in coincidence:
-                    coincidence['main'](self.vk, event)
+            user = db.session.query(User).filter(User.user_id == event.user_id).first()
+            if not user or event.user_id in Config.admin_ids or not user.banned:
+                coincidence = next((
+                    rule for rule in self.handlers
+                    if rule['condition'](self.vk, event) and ('main' in rule or 'admin' in rule and event.user_id in Config.admin_ids)
+                ))
+                if coincidence:
+                    if 'admin' in coincidence and event.user_id in Config.admin_ids:
+                        coincidence['admin'](self.vk, event)
+                    elif 'main' in coincidence:
+                        coincidence['main'](self.vk, event)
         except StopIteration:
             return None
         # except Exception as e:

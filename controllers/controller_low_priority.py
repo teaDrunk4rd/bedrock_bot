@@ -8,6 +8,10 @@ class ControllerLowPriority(Controller):
         self.handlers = [
             {
                 'condition': lambda vk, event: hasattr(event, 'payload'),
+                'admin': lambda vk, event: ControllerBaseRules.send_buttons(
+                    vk, event, 'ведется разработка',
+                    self.main_menu_buttons['admin']
+                ),
                 'main': lambda vk, event: ControllerBaseRules.send_buttons(
                     vk, event, 'ты молодой, шутливый, тебе все легко. это не то. '
                                'это не Чикатило и даже не архивы спецслужб. сюда лучше не лезть',

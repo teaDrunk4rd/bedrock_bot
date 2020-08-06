@@ -75,10 +75,10 @@ class DB:
         user = self.get_user(user_id).first()
         return user.path
 
-    def check_user_current_path(self, user_id, path):
+    def check_user_current_path(self, user_id, path, in_arg=False):
         if type(path) is dict:  # is button
             path = Buttons.get_key(path)
-        return self.get_user_path(user_id) == path
+        return path == self.get_user_path(user_id) if not in_arg else path in self.get_user_path(user_id)
 
 
 db = DB()

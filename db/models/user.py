@@ -16,3 +16,10 @@ class User(Base):
         self.banned = banned
         self.scores = scores
         self.path = path
+
+    def get_status(self):
+        if self.banned:
+            return 'Забанен'
+        elif self.apologies_count > 0:
+            return 'Извиняется'
+        return 'Активен'
