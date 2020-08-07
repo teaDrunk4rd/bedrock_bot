@@ -17,13 +17,25 @@ class ControllerScreens(Controller):
                 'admin': lambda vk, event: self.check_screen_first(vk, event)
             },
             {
+                'condition': lambda vk, event: Controller.check_payload(event, Buttons.screen_check_refresh),
+                'admin': lambda vk, event: self.check_screen_refresh(vk, event)
+            },
+            {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.screen_confirm),
                 'admin': lambda vk, event: self.confirm_screen(vk, event)
             },
             {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.screen_reject),
                 'admin': lambda vk, event: self.reject_screen(vk, event)
-            },  # TODO: отклонить с комментарием
+            },
+            {
+                'condition': lambda vk, event: Controller.check_payload(event, Buttons.comment_screen_reject),
+                'admin': lambda vk, event: self.comment_screen_reject_button(vk, event)
+            },
+            {
+                'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.comment_screen_reject),
+                'admin': lambda vk, event: self.comment_screen_reject(vk, event)
+            },
 
             {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.send_screen) and
@@ -38,6 +50,9 @@ class ControllerScreens(Controller):
 
     def __get_pics(self):
         return db.session.query(Picture).filter(Picture.status_id == PictureStatus.not_checked).order_by(Picture.id).all()
+
+    def __over(self, vk, event):
+        vk.send(event.user_id, 'картинки закончились', self.main_menu_buttons['admin'])
 
     def check_screen_first(self, vk, event):
         pics = self.__get_pics()
@@ -62,11 +77,16 @@ class ControllerScreens(Controller):
             vk.send(
                 event.user_id, message,
                 [[Buttons.screen_confirm, Buttons.screen_reject],
-                 [Buttons.to_main]],
+                 [Buttons.comment_screen_reject, Buttons.to_main]],
                 picture.message_id,
             )
         else:
-            vk.send(event.user_id, 'картинки закончились')
+            self.__over(vk, event)
+
+    def check_screen_refresh(self, vk, event):
+        user = db.get_user(event.user_id)
+        db.update(user, {User.path: ''})
+        self.check_screen(vk, event)
 
     def confirm_screen(self, vk, event):
         pictures = self.__get_pics()
@@ -82,7 +102,7 @@ class ControllerScreens(Controller):
                     forward_messages=picture.message_id)
             self.check_screen(vk, event)
         else:
-            vk.send(event.user_id, 'картинки закончились')
+            self.__over(vk, event)
 
     def reject_screen(self, vk, event):
         pictures = self.__get_pics()
@@ -91,11 +111,31 @@ class ControllerScreens(Controller):
             picture.status_id = PictureStatus.rejected
             db.session.commit()
 
-            vk.send(picture.user_id, f'твой скрин не приняли. проверь его, может с ним что-то не так?',
+            vk.send(picture.user_id, 'твой скрин не приняли. проверь его, может с ним что-то не так?',
                     forward_messages=picture.message_id)
             self.check_screen(vk, event)
         else:
-            vk.send(event.user_id, 'картинки закончились')
+            self.__over(vk, event)
+
+    @staticmethod
+    def comment_screen_reject_button(vk, event):
+        user = db.get_user(event.user_id)
+        db.update(user, {User.path: Buttons.get_key(Buttons.comment_screen_reject)})
+        vk.send(event.user_id, 'давай комментарий', [[Buttons.screen_check_refresh]])
+
+    def comment_screen_reject(self, vk, event):
+        pictures = self.__get_pics()
+        if any(pictures):
+            picture = pictures[0]
+            picture.status_id = PictureStatus.rejected
+            picture.comment = event.text
+            db.session.commit()
+
+            vk.send(picture.user_id, f'твой скрин не приняли. {event.text}',
+                    forward_messages=picture.message_id)
+            self.check_screen(vk, event)
+        else:
+            self.__over(vk, event)
 
     @staticmethod
     def send_screen_button(vk, event):

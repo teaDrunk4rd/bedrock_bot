@@ -47,8 +47,10 @@ class Buttons:
     to_main = get_text_button('Назад', 'secondary', get_command('to_main'))
 
     screen_check = get_text_button('Проверка скринов', 'primary', get_command('screen_check'))
+    screen_check_refresh = get_text_button('Назад', 'secondary', get_command('screen_check_refresh'))
     screen_confirm = get_text_button('Подтвердить', 'positive', get_command('screen_confirm'))
     screen_reject = get_text_button('Отклонить', 'negative', get_command('screen_reject'))
+    comment_screen_reject = get_text_button('Отклонить с комментом', 'negative', get_command('comment_screen_reject'))
 
     admin_stats = get_text_button('Статистика', 'secondary', get_command('admin_stats'))
 
@@ -61,7 +63,7 @@ class Buttons:
     training = get_text_button('Обучение шуткам', 'secondary', get_command('training'))  # TODO: брать из БД классы и строить кнопки при старте бота и при добавлении класса
 
     action_with_user = get_text_button('Действия с пользователем', 'primary', get_command('action_with_user'))
-    unban_user = get_text_button('Разбанить', 'positive', get_command('unban_user'))  # TODO: среди бана/разбана должна показываться только 1 кнопка
+    unban_user = get_text_button('Разбанить', 'positive', get_command('unban_user'))
     ban_user = get_text_button('Забанить', 'negative', get_command('ban_user'))
     add_scores = get_text_button('Добавить очки', 'positive', get_command('add_scores'))
     remove_scores = get_text_button('Отнять очки', 'negative', get_command('remove_scores'))

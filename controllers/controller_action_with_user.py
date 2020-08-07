@@ -88,7 +88,7 @@ class ControllerActionWithUser(Controller):
             db.session.commit()
             ControllerActionWithUser.__send_user_stats(vk, event.user_id, user)
         else:
-            vk.send('ты кто такой, чтобы делать это?')
+            vk.send(event.user_id, 'ты кто такой, чтобы делать это?')
 
     @staticmethod
     def add_remove_scores_button(vk, event, button, message):
