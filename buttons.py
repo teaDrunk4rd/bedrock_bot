@@ -47,7 +47,6 @@ class Buttons:
     to_main = get_text_button('Назад', 'secondary', get_command('to_main'))
 
     screen_check = get_text_button('Проверка скринов', 'primary', get_command('screen_check'))
-    screen_check_refresh = get_text_button('Назад', 'secondary', get_command('screen_check_refresh'))
     screen_confirm = get_text_button('Подтвердить', 'positive', get_command('screen_confirm'))
     screen_reject = get_text_button('Отклонить', 'negative', get_command('screen_reject'))
     comment_screen_reject = get_text_button('Отклонить с комментом', 'negative', get_command('comment_screen_reject'))

@@ -17,10 +17,6 @@ class ControllerScreens(Controller):
                 'admin': lambda vk, event: self.check_screen_first(vk, event)
             },
             {
-                'condition': lambda vk, event: Controller.check_payload(event, Buttons.screen_check_refresh),
-                'admin': lambda vk, event: self.check_screen_refresh(vk, event)
-            },
-            {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.screen_confirm),
                 'admin': lambda vk, event: self.confirm_screen(vk, event)
             },
@@ -64,6 +60,8 @@ class ControllerScreens(Controller):
         self.check_screen(vk, event)
 
     def check_screen(self, vk, event):  # TODO: улучшить, чтобы несколько админов могли проверять фото!
+        user = db.get_user(event.user_id)
+        db.update(user, {User.path: ''})
         pictures = self.__get_pics()
         if any(pictures):
             picture = pictures[0]
@@ -82,11 +80,6 @@ class ControllerScreens(Controller):
             )
         else:
             self.__over(vk, event)
-
-    def check_screen_refresh(self, vk, event):
-        user = db.get_user(event.user_id)
-        db.update(user, {User.path: ''})
-        self.check_screen(vk, event)
 
     def confirm_screen(self, vk, event):
         pictures = self.__get_pics()
@@ -121,7 +114,7 @@ class ControllerScreens(Controller):
     def comment_screen_reject_button(vk, event):
         user = db.get_user(event.user_id)
         db.update(user, {User.path: Buttons.get_key(Buttons.comment_screen_reject)})
-        vk.send(event.user_id, 'давай комментарий', [[Buttons.screen_check_refresh]])
+        vk.send(event.user_id, 'давай комментарий', [[Buttons.change_command(Buttons.to_main, Buttons.screen_check)]])
 
     def comment_screen_reject(self, vk, event):
         pictures = self.__get_pics()
