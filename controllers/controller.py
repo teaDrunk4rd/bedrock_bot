@@ -9,15 +9,9 @@ class Controller:
 
     start_message = {
         'admin': 'здравствуйте, хозяин',
-        'main': 'приветствую тебя. я создан, чтобы передавать скрины и приколы админу, но я сам умею реферировать '
-                'тексты и кидать случайные посты из bedrock\'a (да, да, идея была позаимствована). '
-                'также через меня вы можете поддержать паблик, если вам понравилось, что мы делаем',
+        'main': 'приветствую, я — бот бедрока, с которым тебе точно не придется скучать, '
+                'ибо мой функционал достаточно богат. пиши "начать", чтобы узнать подробнее',
     }
-
-    bad_words = [
-        'сука', 'ебал', 'гандон', 'пидор', 'хуй', 'соси', 'мразь', 'залупа',
-        'жопа', 'член', 'еблан', 'вагина', 'долбаеб', 'хуила', 'пизда'
-    ]  # TODO: скрыть в базе
 
     main_menu_buttons = {
         'admin': [
@@ -44,7 +38,7 @@ class Controller:
             {'button': Buttons.make_joke, 'condition': Settings.make_joke},
             {'button': Buttons.user_stats, 'condition': Settings.user_stats},
             {'button': Buttons.essay, 'condition': Settings.essay},  # TODO: доступность раздела
-            {'button': Buttons.random_post, 'condition': Settings.random_post},  # TODO: доступность раздела
+            {'button': Buttons.random_post, 'condition': Settings.random_post},
             {'button': Buttons.donate, 'condition': Settings.donate},
         ]
         first_line, second_line, third_line = [], [], []

@@ -7,10 +7,15 @@ from vk import Vk
 
 
 class ControllerBaseRules(Controller):
+    bad_words = []
+
     def __init__(self):
+        with open('bad_words.txt', 'r', encoding='utf-8') as f:
+            self.bad_words = [line.strip() for line in f]
+
         self.handlers = [
             {
-                'condition': lambda vk, event: self.check_payload(event, 'start'),
+                'condition': lambda vk, event: self.check_payload(event, 'start') or 'начать' in event.text.lower(),
                 'admin': lambda vk, event: self.send_buttons(vk, event, self.start_message['admin'], self.main_menu_buttons['admin']),
                 'main': lambda vk, event: self.send_buttons(vk, event, self.start_message['main'], self.main_menu_buttons['main'])
             },

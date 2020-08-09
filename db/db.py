@@ -48,7 +48,7 @@ class DB:
                 Settings('donate', True)
             ])
         if not any(self.session.query(Posts)):  # TODO: or Posts.count != lines.count then update posts and count
-            with open('text.txt', 'r') as f:
+            with open('posts.txt', 'r') as f:
                 lines = [int(line.strip()) for line in f]
                 self.add(Posts(len(lines), lines))
         self.session.commit()
