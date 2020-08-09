@@ -59,8 +59,6 @@ class Buttons:
     jokes_cringe = get_text_button('Cringe', 'negative', get_command('jokes_cringe'))
     jokes_next = get_text_button('Следующая', 'secondary', get_command('jokes_next'))
 
-    training = get_text_button('Обучение шуткам', 'secondary', get_command('training'))  # TODO: брать из БД классы и строить кнопки при старте бота и при добавлении класса
-
     action_with_user = get_text_button('Действия с пользователем', 'primary', get_command('action_with_user'))
     unban_user = get_text_button('Разбанить', 'positive', get_command('unban_user'))
     ban_user = get_text_button('Забанить', 'negative', get_command('ban_user'))
@@ -76,8 +74,8 @@ class Buttons:
     unblock_make_joke = get_text_button('Запустить "Насмеши админа"', 'positive', get_command('unblock', 'make_joke'))
     block_essay = get_text_button('Остановить рефераты', 'negative', get_command('block', 'essay'))
     unblock_essay = get_text_button('Запустить рефераты', 'positive', get_command('unblock', 'essay'))
-    block_classification = get_text_button('Остановить классификацию', 'negative', get_command('block', 'classification'))
-    unblock_classification = get_text_button('Запустить классификацию', 'positive', get_command('unblock', 'classification'))
+    block_random_post = get_text_button('Остановить случайный пост', 'negative', get_command('block', 'random_post'))
+    unblock_random_post = get_text_button('Запустить случайный пост', 'positive', get_command('unblock', 'random_post'))
     block_stats = get_text_button('Остановить статистику', 'negative', get_command('block', 'user_stats'))
     unblock_stats = get_text_button('Запустить статистику', 'positive', get_command('unblock', 'user_stats'))
     block_donate = get_text_button('Остановить донаты', 'negative', get_command('block', 'donate'))
@@ -85,13 +83,13 @@ class Buttons:
 
     send_screen = get_text_button('Кинуть скрин', 'positive', get_command('send_screen'))
 
-    user_stats = get_text_button('Статистика', 'secondary', get_command('user_stats'))
-
     make_joke = get_text_button('Насмешить админа', 'positive', get_command('make_joke'))
+
+    user_stats = get_text_button('Статистика', 'primary', get_command('user_stats'))
 
     essay = get_text_button('Реферат', 'primary', get_command('essay'))
 
-    classification = get_text_button('Определить тему шутки', 'primary', get_command('classification'))
+    random_post = get_text_button('Случайный пост', 'secondary', get_command('random_post'))
 
     donate = get_app_button('Поддержать', Config.donate_app_id, f'-{Config.group_id}')
 

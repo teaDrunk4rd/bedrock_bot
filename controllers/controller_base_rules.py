@@ -20,11 +20,11 @@ class ControllerBaseRules(Controller):
                 'main': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['main'])
             },
             {
-                'condition': lambda vk, event: 'кнопки юзера' == event.text.lower(),
+                'condition': lambda vk, event: 'кнопки подписчика' == event.text.lower(),
                 'admin': lambda vk, event: vk.send(event.user_id, 'as you wish', [
-                    [Buttons.send_screen, Buttons.make_joke],
-                    [Buttons.essay, Buttons.classification],
-                    [Buttons.user_stats, Buttons.donate]
+                    [Buttons.send_screen, Buttons.make_joke],  # TODO: убрать дублирование
+                    [Buttons.user_stats, Buttons.essay],
+                    [Buttons.random_post, Buttons.donate]
                 ]),
             },
 
@@ -106,6 +106,9 @@ class ControllerBaseRules(Controller):
             db.update(user, {User.apologies_count: User.apologies_count + 1})
         vk.send(event.user_id, [
             '(ﾉಥ益ಥ)ﾉ',
+            'осуждаю',
+            'не поддерживаю',
+            'фу, какой ты токсичный',
             '┌∩┐(◣_◢)┌∩┐',
             'ай, как мне обидно, я же робот, у меня есть чувства. хе-хе',
             'ты молодой, шутливый, тебе все легко. это не то. это не Чикатило и даже не архивы спецслужб. меня лучше не оскорблять',

@@ -12,7 +12,7 @@ class ControllerSettings(Controller):
         Buttons.get_args(Buttons.block_screen),
         Buttons.get_args(Buttons.block_make_joke),
         Buttons.get_args(Buttons.block_essay),
-        Buttons.get_args(Buttons.block_classification),
+        Buttons.get_args(Buttons.block_random_post),
         Buttons.get_args(Buttons.block_stats),
         Buttons.get_args(Buttons.block_donate)
     ]
@@ -36,7 +36,7 @@ class ControllerSettings(Controller):
             [Buttons.block_screen if Settings.screen else Buttons.unblock_screen,
              Buttons.block_make_joke if Settings.make_joke else Buttons.unblock_make_joke],
             [Buttons.block_essay if Settings.essay else Buttons.unblock_essay,
-             Buttons.block_classification if Settings.classification else Buttons.unblock_classification],
+             Buttons.block_random_post if Settings.random_post else Buttons.unblock_random_post],
             [Buttons.block_stats if Settings.user_stats else Buttons.unblock_stats,
              Buttons.block_donate if Settings.donate else Buttons.unblock_donate],
             [Buttons.to_main]
@@ -53,7 +53,7 @@ class ControllerSettings(Controller):
             elif args == self.__sections_args[3]:
                 Settings.essay = not Settings.essay
             elif args == self.__sections_args[4]:
-                Settings.classification = not Settings.classification
+                Settings.random_post = not Settings.random_post
             elif args == self.__sections_args[5]:
                 Settings.user_stats = not Settings.user_stats
             elif args == self.__sections_args[6]:

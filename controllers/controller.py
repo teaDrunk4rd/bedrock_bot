@@ -9,8 +9,9 @@ class Controller:
 
     start_message = {
         'admin': 'здравствуйте, хозяин',
-        'main': 'приветствую тебя. я создан, чтобы передавать скрины админу, но я сам умею реферировать тексты '
-                'и определять тему шутки. также вы можете поддержать паблик, если вам понравилось, что мы делаем',
+        'main': 'приветствую тебя. я создан, чтобы передавать скрины и приколы админу, но я сам умею реферировать '
+                'тексты и кидать случайные посты из bedrock\'a (да, да, идея была позаимствована). '
+                'также через меня вы можете поддержать паблик, если вам понравилось, что мы делаем',
     }
 
     bad_words = [
@@ -22,12 +23,12 @@ class Controller:
         'admin': [
             [Buttons.screen_check, Buttons.jokes_check],
             [Buttons.action_with_user, Buttons.settings],
-            [Buttons.admin_stats, Buttons.training]
+            [Buttons.admin_stats]
         ],
-        'main': [
+        'main': [  # такой порядок должен быть у кнопок
             [Buttons.send_screen, Buttons.make_joke],
-            [Buttons.essay, Buttons.classification],
-            [Buttons.user_stats, Buttons.donate]
+            [Buttons.user_stats, Buttons.essay],
+            [Buttons.random_post, Buttons.donate]
         ]
     }
 
@@ -41,9 +42,9 @@ class Controller:
         buttons = [
             {'button': Buttons.send_screen, 'condition': Settings.screen},
             {'button': Buttons.make_joke, 'condition': Settings.make_joke},
-            {'button': Buttons.essay, 'condition': Settings.essay},  # TODO: доступность раздела
-            {'button': Buttons.classification, 'condition': Settings.classification},  # TODO: доступность раздела
             {'button': Buttons.user_stats, 'condition': Settings.user_stats},
+            {'button': Buttons.essay, 'condition': Settings.essay},  # TODO: доступность раздела
+            {'button': Buttons.random_post, 'condition': Settings.random_post},  # TODO: доступность раздела
             {'button': Buttons.donate, 'condition': Settings.donate},
         ]
         first_line, second_line, third_line = [], [], []

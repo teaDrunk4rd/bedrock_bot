@@ -8,6 +8,7 @@ from controllers.controller_low_priority import ControllerLowPriority
 from controllers.controller_screens import ControllerScreens
 from controllers.controller_settings import ControllerSettings
 from controllers.controller_statistics import ControllerStatistics
+from controllers.controller_random_post import ControllerRandomPost
 from db.db import db
 from db.models.user import User
 from vk import Vk
@@ -27,9 +28,9 @@ class App:
             *ControllerActionWithUser().handlers,
             *ControllerJokes().handlers,
             *ControllerSettings().handlers,
+            *ControllerRandomPost().handlers,
 
             *ControllerLowPriority().handlers
-            # TODO: случайный пост
         ]
 
     def process_new_message(self, event):
