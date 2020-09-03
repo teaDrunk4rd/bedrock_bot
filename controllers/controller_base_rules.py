@@ -42,8 +42,10 @@ class ControllerBaseRules(Controller):
                 'main': lambda vk, event: vk.send_message_sticker(event.user_id, 'а может ты пидор?', 49)
             },
             {
-                'condition': lambda vk, event: self.any_in(self.bad_words, event.text.lower()) and
-                                               db.get_user_path(event.user_id) != Buttons.get_key(Buttons.make_joke),
+                'condition': lambda vk, event:
+                    self.any_in(self.bad_words, event.text.lower()) and
+                    db.get_user_path(event.user_id) not in
+                        [Buttons.get_key(Buttons.make_joke), Buttons.get_key(Buttons.comment_screen_reject)],
                 'main': lambda vk, event: self.insult(vk, event)
             },
             {

@@ -37,6 +37,11 @@ class ControllerScreens(Controller):
                 'admin': lambda vk, event: self.comment_screen_reject(vk, event),
                 'editor': lambda vk, event: self.comment_screen_reject(vk, event)
             },
+            {
+                'condition': lambda vk, event: Controller.check_payload(event, Buttons.screen_refresh),
+                'admin': lambda vk, event: self.screen_refresh(vk, event),
+                'editor': lambda vk, event: self.screen_refresh(vk, event)
+            },
 
             {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.send_screen) and
@@ -49,8 +54,14 @@ class ControllerScreens(Controller):
             }
         ]
 
+    def __get_current_inspection_pic(self, user_id):
+        return db.session.query(Picture)\
+            .filter(Picture.status_id == PictureStatus.not_checked, Picture.inspector_id == user_id).first()
+
     def __get_pics(self):
-        return db.session.query(Picture).filter(Picture.status_id == PictureStatus.not_checked).order_by(Picture.id).all()
+        return db.session.query(Picture)\
+            .filter(Picture.status_id == PictureStatus.not_checked, Picture.inspector_id == None)\
+            .order_by(Picture.id).all()
 
     def __over(self, vk, event):
         buttons_access_key = 'admin' if event.user_id in Config.admin_ids else 'editor'
@@ -67,7 +78,7 @@ class ControllerScreens(Controller):
         else:
             self.__over(vk, event)
 
-    def check_screen(self, vk, event):  # TODO: улучшить, чтобы несколько админов могли проверять фото!
+    def check_screen(self, vk, event):
         user = db.get_user(event.user_id)
         db.update(user, {User.path: ''})
         pictures = self.__get_pics()
@@ -78,21 +89,22 @@ class ControllerScreens(Controller):
                 db.session.query(Picture).filter(
                     Picture.user_id == picture.user_id, Picture.status_id == PictureStatus.confirmed).all()
             ])
+            picture.inspector_id = event.user_id
+            db.session.commit()
             message = f'предыдущие фотокарточки:\n{previous_photos}' if previous_photos else f'этот новенький'
             message += f'\nтекущая фотокарточка:\n{picture.url}'
             vk.send(
                 event.user_id, message,
                 [[Buttons.screen_confirm, Buttons.screen_reject],
-                 [Buttons.comment_screen_reject, Buttons.to_main]],
+                 [Buttons.comment_screen_reject, Buttons.screen_refresh]],
                 picture.message_id,
             )
         else:
             self.__over(vk, event)
 
     def confirm_screen(self, vk, event):
-        pictures = self.__get_pics()
-        if any(pictures):
-            picture = pictures[0]
+        picture = self.__get_current_inspection_pic(event.user_id)
+        if picture:
             picture.status_id = PictureStatus.confirmed
             picture.user.scores = picture.user.scores + 1
             db.session.commit()
@@ -106,9 +118,8 @@ class ControllerScreens(Controller):
             self.__over(vk, event)
 
     def reject_screen(self, vk, event):
-        pictures = self.__get_pics()
-        if any(pictures):
-            picture = pictures[0]
+        picture = self.__get_current_inspection_pic(event.user_id)
+        if picture:
             picture.status_id = PictureStatus.rejected
             db.session.commit()
 
@@ -125,9 +136,8 @@ class ControllerScreens(Controller):
         vk.send(event.user_id, 'давай комментарий', [[Buttons.change_command(Buttons.to_main, Buttons.screen_check)]])
 
     def comment_screen_reject(self, vk, event):
-        pictures = self.__get_pics()
-        if any(pictures):
-            picture = pictures[0]
+        picture = self.__get_current_inspection_pic(event.user_id)
+        if picture:
             picture.status_id = PictureStatus.rejected
             picture.comment = event.text
             db.session.commit()
@@ -137,6 +147,16 @@ class ControllerScreens(Controller):
             self.check_screen(vk, event)
         else:
             self.__over(vk, event)
+
+    def screen_refresh(self, vk, event):
+        user = db.get_user(event.user_id)
+        db.update(user, {User.path: ''})
+        not_checked_pic = self.__get_current_inspection_pic(event.user_id)
+        if not_checked_pic:
+            not_checked_pic.inspector_id = None
+            db.session.commit()
+        buttons_access_key = 'admin' if event.user_id in Config.admin_ids else 'editor'
+        vk.send(event.user_id, 'as you wish', self.main_menu_buttons[buttons_access_key])
 
     @staticmethod
     def send_screen_button(vk, event):

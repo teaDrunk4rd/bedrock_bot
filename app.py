@@ -24,8 +24,8 @@ class App:
         self.vk = Vk(VkApi(token=Config.token))
         ControllerBaseRules().update_user_buttons()
         self.handlers = [
-            *ControllerScreens().handlers,
             *ControllerBaseRules().handlers,
+            *ControllerScreens().handlers,
             *ControllerStatistics().handlers,
             *ControllerActionWithUser().handlers,
             *ControllerJokes().handlers,

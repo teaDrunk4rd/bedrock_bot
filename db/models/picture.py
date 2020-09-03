@@ -12,9 +12,11 @@ class Picture(Base):
     name = Column(String, nullable=False)
     message_id = Column(String, nullable=False)
     comment = Column(String, nullable=True)
+    inspector_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
 
-    user = relationship('User', backref='pictures')
+    user = relationship('User', backref='pictures', foreign_keys=user_id)
     status = relationship('PictureStatus', backref='pictures')
+    inspector = relationship('User', backref='pictures_inspected', foreign_keys=inspector_id)
 
     def __init__(self, user_id, status_id, url, name, message_id, comment=None):
         self.user_id = user_id

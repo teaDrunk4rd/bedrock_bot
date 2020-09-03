@@ -13,7 +13,7 @@ class User(Base):
     scores = Column(Integer, default=0)
     path = Column(String, default='')
 
-    role = relationship('Role', backref='roles')
+    role = relationship('Role', backref='users')
 
     def __init__(self, user_id, role_id, apologies_count=0, banned=False, scores=0, path=''):
         self.user_id = user_id
