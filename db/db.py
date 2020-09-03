@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
 from buttons import Buttons
 from config import Config
 from db.models.base import Base
@@ -8,6 +7,7 @@ from db.models.joke import Joke
 from db.models.picture import Picture
 from db.models.picture_status import PictureStatus
 from db.models.posts import Posts
+from db.models.role import Role
 from db.models.settings import Settings
 from db.models.user import User
 
@@ -16,13 +16,14 @@ class DB:
     session = None
 
     def __init__(self):
-        engine = create_engine(Config.db_link, echo=False)
+        engine = create_engine(Config.db_link, echo=False)  # TODO: db backups
         Session = sessionmaker(bind=engine)
         self.session = Session()
         Base.metadata.create_all(engine, tables=[
             Settings.__table__,
             PictureStatus.__table__,
             Posts.__table__,
+            Role.__table__,
             User.__table__,
             Joke.__table__,
             Picture.__table__
@@ -51,6 +52,16 @@ class DB:
             with open('posts.txt', 'r') as f:
                 lines = [int(line.strip()) for line in f]
                 self.add(Posts(len(lines), lines))
+        if not any(self.session.query(Role)):
+            self.add([
+                Role('Админ', 'admin'),
+                Role('Редактор', 'editor'),
+                Role('Пользователь', 'user'),
+            ])
+        admin_role = self.session.query(Role).filter(Role.key == 'admin').first().id
+        for admin_id in Config.admin_ids:
+            if not self.session.query(User).filter(User.user_id == admin_id).first():
+                self.add(User(admin_id, admin_role))
         self.session.commit()
 
     def __set_consts(self):
@@ -66,6 +77,10 @@ class DB:
         Settings.user_stats = self.session.query(Settings).filter(Settings.name == 'user_stats').first().value == 'true'
         Settings.donate = self.session.query(Settings).filter(Settings.name == 'donate').first().value == 'true'
 
+        Role.admin = self.session.query(Role).filter(Role.key == 'admin').first().id
+        Role.editor = self.session.query(Role).filter(Role.key == 'editor').first().id
+        Role.user = self.session.query(Role).filter(Role.key == 'user').first().id
+
     def add(self, entity):
         if type(entity) is list:
             self.session.add_all(entity)
@@ -80,7 +95,8 @@ class DB:
     def get_user(self, user_id):
         user = self.session.query(User).filter(User.user_id == user_id)
         if not user.first():
-            self.add(User(user_id))
+            role_id = Role.user if user_id not in Config.admin_ids else Role.admin
+            self.add(User(user_id, role_id))
         return user
 
     def get_user_path(self, user_id):

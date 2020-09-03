@@ -1,5 +1,6 @@
 from buttons import Buttons
 from config import Config
+from db.models.role import Role
 from db.models.user import User
 from db.db import db
 from controllers.controller import Controller
@@ -17,11 +18,13 @@ class ControllerBaseRules(Controller):
             {
                 'condition': lambda vk, event: self.check_payload(event, 'start') or 'начать' in event.text.lower(),
                 'admin': lambda vk, event: self.send_buttons(vk, event, self.start_message['admin'], self.main_menu_buttons['admin']),
+                'editor': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['editor']),
                 'main': lambda vk, event: self.send_buttons(vk, event, self.start_message['main'], self.main_menu_buttons['main'])
             },
             {
                 'condition': lambda vk, event: 'кнопки' == event.text.lower() or self.check_payload(event, Buttons.to_main),
                 'admin': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['admin']),
+                'editor': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['editor']),
                 'main': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['main'])
             },
             {
@@ -107,7 +110,7 @@ class ControllerBaseRules(Controller):
     @staticmethod
     def insult(vk, event):
         user = db.get_user(event.user_id)
-        if event.user_id not in Config.admin_ids:
+        if event.user_id not in Config.admin_ids and user.first().role_id != Role.editor:
             db.update(user, {User.apologies_count: User.apologies_count + 1})
         vk.send(event.user_id, [
             '(ﾉಥ益ಥ)ﾉ',
@@ -124,7 +127,7 @@ class ControllerBaseRules(Controller):
     @staticmethod
     def demand_apology(vk, event):
         user = db.session.query(User).filter(User.user_id == event.user_id).first()
-        if event.user_id not in Config.admin_ids and user:
+        if event.user_id not in Config.admin_ids and user and user.role_id != Role.editor:
             messages = next(iter([
                 msg['messages'] for msg in [
                     {

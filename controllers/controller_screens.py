@@ -14,23 +14,28 @@ class ControllerScreens(Controller):
         self.handlers = [
             {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.screen_check),
-                'admin': lambda vk, event: self.check_screen_first(vk, event)
+                'admin': lambda vk, event: self.check_screen_first(vk, event),
+                'editor': lambda vk, event: self.check_screen_first(vk, event)
             },
             {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.screen_confirm),
-                'admin': lambda vk, event: self.confirm_screen(vk, event)
+                'admin': lambda vk, event: self.confirm_screen(vk, event),
+                'editor': lambda vk, event: self.confirm_screen(vk, event)
             },
             {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.screen_reject),
-                'admin': lambda vk, event: self.reject_screen(vk, event)
+                'admin': lambda vk, event: self.reject_screen(vk, event),
+                'editor': lambda vk, event: self.reject_screen(vk, event)
             },
             {
                 'condition': lambda vk, event: Controller.check_payload(event, Buttons.comment_screen_reject),
-                'admin': lambda vk, event: self.comment_screen_reject_button(vk, event)
+                'admin': lambda vk, event: self.comment_screen_reject_button(vk, event),
+                'editor': lambda vk, event: self.comment_screen_reject_button(vk, event)
             },
             {
                 'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.comment_screen_reject),
-                'admin': lambda vk, event: self.comment_screen_reject(vk, event)
+                'admin': lambda vk, event: self.comment_screen_reject(vk, event),
+                'editor': lambda vk, event: self.comment_screen_reject(vk, event)
             },
 
             {
@@ -48,16 +53,19 @@ class ControllerScreens(Controller):
         return db.session.query(Picture).filter(Picture.status_id == PictureStatus.not_checked).order_by(Picture.id).all()
 
     def __over(self, vk, event):
-        vk.send(event.user_id, 'картинки закончились', self.main_menu_buttons['admin'])
+        buttons_access_key = 'admin' if event.user_id in Config.admin_ids else 'editor'
+        vk.send(event.user_id, 'картинки закончились', self.main_menu_buttons[buttons_access_key])
 
     def check_screen_first(self, vk, event):
         pics = self.__get_pics()
         if any(pics):
             vk.send(event.user_id, 'сейчас по очереди я буду скидывать тебе скрины. твоя задача — принимать или отклонять их.\n'
-                                   'если принимаешь, то +1 балл челу, если отклоняешь, то +0 баллов.\n'
+                                   'если принимаешь, то +1 балл челу, если отклоняешь, то 0 баллов.\n'
                                    'в сообщении я прикрепляю сам скрин, пересылаю сообщение от которого скрин был взят и '
                                    'указываю список ссылок на предыдущие скрины чела, чтобы ты мог сравнить их')
-        self.check_screen(vk, event)
+            self.check_screen(vk, event)
+        else:
+            self.__over(vk, event)
 
     def check_screen(self, vk, event):  # TODO: улучшить, чтобы несколько админов могли проверять фото!
         user = db.get_user(event.user_id)
@@ -68,7 +76,7 @@ class ControllerScreens(Controller):
             previous_photos = '\n'.join([
                 photo.url for photo in
                 db.session.query(Picture).filter(
-                    Picture.user_id == picture.user_id, Picture.status_id != PictureStatus.not_checked).all()
+                    Picture.user_id == picture.user_id, Picture.status_id == PictureStatus.confirmed).all()
             ])
             message = f'предыдущие фотокарточки:\n{previous_photos}' if previous_photos else f'этот новенький'
             message += f'\nтекущая фотокарточка:\n{picture.url}'
@@ -89,7 +97,7 @@ class ControllerScreens(Controller):
             picture.user.scores = picture.user.scores + 1
             db.session.commit()
 
-            scores_plural = ControllerScreens.plural_form(picture.user.scores, 'очко)', 'очка', 'очков')
+            scores_plural = ControllerScreens.plural_form(picture.user.scores, 'очко', 'очка', 'очков')
             vk.send(picture.user_id, f'поздравляю, один из твоих скринов приняли. '
                                      f'на данный момент у тебя {picture.user.scores} {scores_plural}',
                     forward_messages=picture.message_id)

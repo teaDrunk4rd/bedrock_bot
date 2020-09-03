@@ -1,17 +1,23 @@
-from sqlalchemy import Column, Integer, SmallInteger, Boolean, String
+from sqlalchemy import Column, Integer, SmallInteger, Boolean, String, ForeignKey
+from sqlalchemy.orm import relationship
+
 from db.models.base import Base
 
 
 class User(Base):
     __tablename__ = 'users'
     user_id = Column(Integer, primary_key=True)
+    role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
     apologies_count = Column(SmallInteger, default=0)
     banned = Column(Boolean, default=False)
     scores = Column(Integer, default=0)
     path = Column(String, default='')
 
-    def __init__(self, user_id, apologies_count=0, banned=False, scores=0, path=''):
+    role = relationship('Role', backref='roles')
+
+    def __init__(self, user_id, role_id, apologies_count=0, banned=False, scores=0, path=''):
         self.user_id = user_id
+        self.role_id = role_id
         self.apologies_count = apologies_count
         self.banned = banned
         self.scores = scores

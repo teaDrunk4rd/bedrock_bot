@@ -5,6 +5,7 @@ from db.db import db
 from db.models.joke import Joke
 from db.models.picture import Picture
 from db.models.picture_status import PictureStatus
+from db.models.role import Role
 from db.models.settings import Settings
 from db.models.user import User
 
@@ -14,7 +15,8 @@ class ControllerStatistics(Controller):
         self.handlers = [
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.admin_stats),
-                'admin': lambda vk, event: self.admin_stats(vk, event)
+                'admin': lambda vk, event: self.admin_stats(vk, event),
+                'editor': lambda vk, event: self.admin_stats(vk, event)
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.user_stats) and
@@ -29,7 +31,7 @@ class ControllerStatistics(Controller):
         confirmed_screens = db.session.query(Picture).filter(Picture.status_id == PictureStatus.confirmed).count()
         rejected_screens = db.session.query(Picture).filter(Picture.status_id == PictureStatus.rejected).count()
         not_viewed_jokes = db.session.query(Joke).filter(Joke.viewed != True).count()
-        users = db.session.query(User).filter(User.user_id.notin_(Config.admin_ids)).order_by(User.scores).all()[:10]
+        users = db.session.query(User).filter(User.user_id == Role.user).order_by(User.scores).all()[:10]  # .filter(User.user_id.notin_(Config.admin_ids))
         user_stats = ''.join([
             f'{num + 1}. {vk.get_user_name(user.user_id)}(vk.com/id{user.user_id}): {user.scores}\n'
             for num, user in enumerate(users)

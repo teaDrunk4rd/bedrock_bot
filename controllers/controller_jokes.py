@@ -135,8 +135,9 @@ class ControllerJokes(Controller):
                 joke.viewed = True
                 joke.score = scores * -1
                 db.update(db.get_user(joke.user_id), {User.scores: User.scores - scores})
+                scores_str = f'-{scores}' if scores != 0 else scores
                 vk.send(joke.user_id,
-                        f'твою шутку оценили на -{scores} {self.plural_form(scores, "очко", "очка", "очков")}\n'
+                        f'твою шутку оценили на {scores_str} {self.plural_form(scores, "очко", "очка", "очков")}\n'
                         f'на данный момент у тебя {joke.user.scores} {self.plural_form(joke.user.scores, "очко", "очка", "очков")}',
                         forward_messages=joke.message_id)
                 self.check_joke(vk, event)

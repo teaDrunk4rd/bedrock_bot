@@ -51,8 +51,6 @@ class Buttons:
     screen_reject = get_text_button('Отклонить', 'negative', get_command('screen_reject'))
     comment_screen_reject = get_text_button('Отклонить с комментом', 'negative', get_command('comment_screen_reject'))
 
-    admin_stats = get_text_button('Статистика', 'secondary', get_command('admin_stats'))
-
     jokes_check = get_text_button('Проверка приколов', 'primary', get_command('jokes_check'))
     jokes_refresh = get_text_button('Назад', 'secondary', get_command('jokes_refresh'))
     jokes_good = get_text_button('Godnota', 'positive', get_command('jokes_good'))
@@ -64,6 +62,12 @@ class Buttons:
     ban_user = get_text_button('Забанить', 'negative', get_command('ban_user'))
     add_scores = get_text_button('Добавить очки', 'positive', get_command('add_scores'))
     remove_scores = get_text_button('Отнять очки', 'negative', get_command('remove_scores'))
+
+    admin_stats = get_text_button('Статистика', 'secondary', get_command('admin_stats'))
+
+    editors = get_text_button('Редакторы', 'secondary', get_command('editors'))
+    add_editor = get_text_button('Добавить', 'positive', get_command('add_editor'))
+    remove_editor = get_text_button('Убрать', 'negative', get_command('remove_editor'))
 
     settings = get_text_button('Управление ботом', 'primary', get_command('settings'))
     block_bot = get_text_button('Остановить бота', 'negative', get_command('block', 'bot'))

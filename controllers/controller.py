@@ -17,7 +17,10 @@ class Controller:
         'admin': [
             [Buttons.screen_check, Buttons.jokes_check],
             [Buttons.action_with_user, Buttons.settings],
-            [Buttons.admin_stats]
+            [Buttons.admin_stats, Buttons.editors]
+        ],
+        'editor': [
+            [Buttons.screen_check, Buttons.admin_stats],
         ],
         'main': [  # такой порядок должен быть у кнопок
             [Buttons.send_screen, Buttons.make_joke],
@@ -72,7 +75,8 @@ class Controller:
     #     if type(key) is dict:  # is button
     #         condition = lambda payload, key: literal_eval(event.payload).get('command') == Buttons.get_key(key)
     #     elif type(key) is list:
-    #         condition = lambda payload, keys: literal_eval(event.payload).get('command') in [Buttons.get_key(key) for key in keys]
+    #         condition = lambda payload, keys: \
+    #             literal_eval(event.payload).get('command') in [Buttons.get_key(key) for key in keys]
     #     return hasattr(event, 'payload') and condition(event.payload, key)
 
     @staticmethod
