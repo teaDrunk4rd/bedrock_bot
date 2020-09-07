@@ -30,7 +30,7 @@ class ControllerBaseRules(Controller):
             {
                 'condition': lambda vk, event: 'кнопки подписчика' == event.text.lower(),
                 'admin': lambda vk, event: vk.send(event.user_id, 'as you wish', [
-                    [Buttons.send_screen, Buttons.make_joke],  # TODO: убрать дублирование
+                    [Buttons.send_screen, Buttons.make_joke],  # убрать дублирование
                     [Buttons.user_stats, Buttons.essay],
                     [Buttons.random_post, Buttons.donate]
                 ]),

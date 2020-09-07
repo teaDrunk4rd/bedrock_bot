@@ -4,6 +4,7 @@ from controllers.controller import Controller
 from db.db import db
 from db.models.role import Role
 from db.models.user import User
+from getter_id_decorator import getter_id
 
 
 class ControllerEditors(Controller):
@@ -51,26 +52,20 @@ class ControllerEditors(Controller):
         db.update(admin, {User.path: path})
         vk.send(event.user_id, f'вводи id в формате "id{event.user_id}"', [[Buttons.change_command(Buttons.to_main, Buttons.editors)]])
 
-    def add_editor(self, vk, event):
-        try:
-            user_id = int(event.text.replace('id', ''))
-            user = db.get_user(user_id)
-            if user_id not in Config.admin_ids and user.first().role_id != Role.editor:
-                db.update(user, {'role_id': Role.editor})
-                vk.send(user_id, 'тебя выбрали редактором. теперь ты можешь помогать админу с проверкой скринов',
-                        self.main_menu_buttons['editor'])
-            self.send_buttons(vk, event)
-        except ValueError:
-            vk.send(event.user_id, 'ты ввел id не в том формате')  # TODO: вынести в другое место
+    @getter_id
+    def add_editor(self, vk, event, user_id):
+        user = db.get_user(user_id)
+        if user_id not in Config.admin_ids and user.first().role_id != Role.editor:
+            db.update(user, {'role_id': Role.editor})
+            vk.send(user_id, 'тебя выбрали редактором. теперь ты можешь помогать админу с проверкой скринов',
+                    self.main_menu_buttons['editor'])
+        self.send_buttons(vk, event)
 
-    def remove_editor(self, vk, event):
-        try:
-            user_id = int(event.text.replace('id', ''))
-            user = db.get_user(user_id)
-            if user_id not in Config.admin_ids and user.first().role_id == Role.editor:
-                db.update(user, {'role_id': Role.user})
-                vk.send(user_id, 'товарищ редактор, спасибо за помощь. админ теперь справится сам',
-                        self.main_menu_buttons['main'])
-            self.send_buttons(vk, event)
-        except ValueError:
-            vk.send(event.user_id, 'ты ввел id не в том формате')
+    @getter_id
+    def remove_editor(self, vk, event, user_id):
+        user = db.get_user(user_id)
+        if user_id not in Config.admin_ids and user.first().role_id == Role.editor:
+            db.update(user, {'role_id': Role.user})
+            vk.send(user_id, 'товарищ редактор, спасибо за помощь. админ теперь справится сам',
+                    self.main_menu_buttons['main'])
+        self.send_buttons(vk, event)

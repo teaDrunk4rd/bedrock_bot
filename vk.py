@@ -43,6 +43,18 @@ class Vk:
         self.send(id, text)
         self.send_sticker(id, sticker_num)
 
+    def get_unread_conversations(self, offset=0, count=200):
+        conversations = self.session.method('messages.getConversations', {
+            'filter': 'unread',
+            'offset': offset,
+            'count': count,
+            'extended': 0
+        })
+        return [
+                   conversation for conversation in conversations['items']
+                   if conversation['conversation']['peer']['type'] != 'chat'
+               ], conversations['count']
+
     def get_message_attachments(self, message_id):
         attachments = self.session.method('messages.getById', {'message_ids': message_id})
         return attachments['items'][0]['attachments'] if attachments['count'] != 0 else None

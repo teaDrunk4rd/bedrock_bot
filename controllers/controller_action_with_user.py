@@ -4,6 +4,7 @@ from controllers.controller import Controller
 from controllers.controller_statistics import ControllerStatistics
 from db.db import db
 from db.models.user import User
+from getter_id_decorator import getter_id
 
 
 class ControllerActionWithUser(Controller):
@@ -53,16 +54,12 @@ class ControllerActionWithUser(Controller):
         db.update(admin, {User.path: Buttons.get_key(Buttons.action_with_user)})
         vk.send(event.user_id, f'вводи id в формате "id{event.user_id}"', [[Buttons.to_main]])
 
-    @staticmethod
-    def action_with_user_id(vk, event):
-        try:
-            user_id = int(event.text.replace('id', ''))
-            user = db.session.query(User).filter(User.user_id == user_id).first()
-            ControllerActionWithUser.__send_user_stats(vk, event.user_id, user)
-            admin = db.get_user(event.user_id)
-            db.update(admin, {User.path: f'{Buttons.get_key(Buttons.action_with_user)}: id{user.user_id}'})
-        except ValueError:
-            vk.send(event.user_id, 'ты ввел id не в том формате')
+    @getter_id
+    def action_with_user_id(self, vk, event, user_id):
+        user = db.session.query(User).filter(User.user_id == user_id).first()
+        ControllerActionWithUser.__send_user_stats(vk, event.user_id, user)
+        admin = db.get_user(event.user_id)
+        db.update(admin, {User.path: f'{Buttons.get_key(Buttons.action_with_user)}: id{user.user_id}'})
 
     @staticmethod
     def __send_user_stats(vk, admin_id, user):

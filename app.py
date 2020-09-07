@@ -59,6 +59,17 @@ class App:
         # except Exception as e:
         #     App.write_log(self.vk, event.message_id, e)
 
+    def process_unread_messages(self):
+        count = 200
+        while count == 200:
+            conversations, count = self.vk.get_unread_conversations()
+            for conversation in conversations:
+                self.vk.send(conversation['conversation']['peer']['id'], [
+                    'что-то я залип на некоторое время, можешь повторить что ты там говорил?',
+                    'извини, что не отвечал, делал свои дела. ну ты знаешь, дела обычного бота бедрока: '
+                    'банил всяких гандонов и генерировал мемы. так на чем мы остановились?'
+                ])
+
     @staticmethod
     def write_log(vk, message_id, e):
         if type(e) is ApiError:
