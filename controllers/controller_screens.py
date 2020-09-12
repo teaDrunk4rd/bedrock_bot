@@ -79,8 +79,6 @@ class ControllerScreens(Controller):
             self.__over(vk, event)
 
     def check_screen(self, vk, event):
-        user = db.get_user(event.user_id)
-        db.update(user, {User.path: ''})
         pictures = self.__get_pics()
         if any(pictures):
             picture = pictures[0]
@@ -99,7 +97,11 @@ class ControllerScreens(Controller):
                  [Buttons.comment_screen_reject, Buttons.screen_refresh]],
                 picture.message_id,
             )
+            user = db.get_user(event.user_id)
+            db.update(user, {User.path: ''})
         else:
+            user = db.get_user(event.user_id)
+            db.update(user, {User.path: ''})
             self.__over(vk, event)
 
     def confirm_screen(self, vk, event):

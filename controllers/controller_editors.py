@@ -34,7 +34,6 @@ class ControllerEditors(Controller):
 
     @staticmethod
     def send_buttons(vk, event):
-        db.update(db.get_user(event.user_id), {User.path: ''})
         editors = db.session.query(User).filter(User.role_id == Role.editor).all()
         message = '\n'.join([
             f'{num + 1}. {vk.get_user_name(user.user_id)}(vk.com/id{user.user_id})'
@@ -45,6 +44,7 @@ class ControllerEditors(Controller):
             [Buttons.add_editor, Buttons.remove_editor],
             [Buttons.to_main]
         ])
+        db.update(db.get_user(event.user_id), {User.path: ''})
 
     @staticmethod
     def add_remove_editor_button(vk, event, path):

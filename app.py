@@ -10,6 +10,7 @@ from controllers.controller_settings import ControllerSettings
 from controllers.controller_statistics import ControllerStatistics
 from controllers.controller_random_post import ControllerRandomPost
 from controllers.controller_editors import ControllerEditors
+from controllers.controller_essay.controller_essay import ControllerEssay
 from db.db import db
 from db.models.role import Role
 from db.models.user import User
@@ -32,6 +33,7 @@ class App:
             *ControllerSettings().handlers,
             *ControllerRandomPost().handlers,
             *ControllerEditors().handlers,
+            *ControllerEssay().handlers,
 
             *ControllerLowPriority().handlers
         ]

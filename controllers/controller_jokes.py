@@ -39,7 +39,8 @@ class ControllerJokes(Controller):
             },
 
             {
-                'condition': lambda vk, event: self.check_payload(event, Buttons.make_joke) and self.check_access(Settings.make_joke, event.user_id),
+                'condition': lambda vk, event: self.check_payload(event, Buttons.make_joke) and
+                                               self.check_access(Settings.make_joke, event.user_id),
                 'main': lambda vk, event: self.make_admin_laugh_button(vk, event)
             },
             {
@@ -157,7 +158,7 @@ class ControllerJokes(Controller):
         vk.send(event.user_id, message, [[Buttons.to_main]])
 
     def make_admin_laugh(self, vk, event):
+        db.add(Joke(event.user_id, event.message_id))
         user = db.get_user(event.user_id)
         db.update(user, {User.path: ''})
-        db.add(Joke(event.user_id, event.message_id))
         vk.send(event.user_id, 'принято в обработку', self.main_menu_buttons['main'])
