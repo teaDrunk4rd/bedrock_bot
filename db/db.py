@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 from buttons import Buttons
 from config import Config
 from db.models.base import Base
@@ -10,6 +10,7 @@ from db.models.posts import Posts
 from db.models.role import Role
 from db.models.settings import Settings
 from db.models.user import User
+from db.models.essay import Essay
 
 
 class DB:
@@ -18,7 +19,7 @@ class DB:
     def __init__(self):
         engine = create_engine(Config.db_link, echo=False)  # TODO: db backups
         Session = sessionmaker(bind=engine)
-        self.session = Session()
+        self.session = scoped_session(Session)()
         Base.metadata.create_all(engine, tables=[
             Settings.__table__,
             PictureStatus.__table__,
@@ -26,6 +27,7 @@ class DB:
             Role.__table__,
             User.__table__,
             Joke.__table__,
+            Essay.__table__,
             Picture.__table__
         ])
         self.__run_seeders()

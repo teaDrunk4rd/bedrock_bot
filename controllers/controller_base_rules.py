@@ -44,8 +44,10 @@ class ControllerBaseRules(Controller):
             {
                 'condition': lambda vk, event:
                     self.any_in(self.bad_words, event.text.lower()) and
-                    db.get_user_path(event.user_id) not in
-                        [Buttons.get_key(Buttons.make_joke), Buttons.get_key(Buttons.comment_screen_reject)],
+                    db.get_user_path(event.user_id) not in [
+                        Buttons.get_key(Buttons.make_joke),
+                        Buttons.get_key(Buttons.comment_screen_reject),
+                        Buttons.get_key(Buttons.essay)],
                 'main': lambda vk, event: self.insult(vk, event)
             },
             {
@@ -90,7 +92,10 @@ class ControllerBaseRules(Controller):
                     'сори',
                     'сорямба',
                     'не хотел обидеть тебя'
-                ], event.text.lower()) and db.get_user_path(event.user_id) != Buttons.get_key(Buttons.make_joke),
+                ], event.text.lower()) and db.get_user_path(event.user_id) not in [
+                        Buttons.get_key(Buttons.make_joke),
+                        Buttons.get_key(Buttons.comment_screen_reject),
+                        Buttons.get_key(Buttons.essay)],
                 'main': lambda vk, event: self.get_apology(vk, event)
             },
             {

@@ -13,8 +13,10 @@ from controllers.controller_editors import ControllerEditors
 from controllers.controller_essay.controller_essay import ControllerEssay
 from db.db import db
 from db.models.role import Role
+from db.models.settings import Settings
 from db.models.user import User
 from vk import Vk
+from multiprocessing.dummy import Process
 
 
 class App:
@@ -24,6 +26,7 @@ class App:
     def __init__(self):
         self.vk = Vk(VkApi(token=Config.token))
         ControllerBaseRules().update_user_buttons()
+        controller_essay = ControllerEssay()
         self.handlers = [
             *ControllerBaseRules().handlers,
             *ControllerScreens().handlers,
@@ -33,15 +36,19 @@ class App:
             *ControllerSettings().handlers,
             *ControllerRandomPost().handlers,
             *ControllerEditors().handlers,
-            *ControllerEssay().handlers,
+            *controller_essay.handlers,
 
             *ControllerLowPriority().handlers
         ]
+        p = Process(target=controller_essay.proceed_essays, args=(self.vk,))
+        p.start()
 
     def process_new_message(self, event):
         try:
             user = db.session.query(User).filter(User.user_id == event.user_id).first()
-            if not user or event.user_id in Config.admin_ids or not user.banned:
+            if event.user_id in Config.admin_ids or \
+                    user.role_id == Role.editor and not user.banned or \
+                    Settings.bot and (not user or not user.banned):
                 coincidence = next((
                     rule for rule in self.handlers
                     if rule['condition'](self.vk, event) and

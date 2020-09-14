@@ -40,7 +40,7 @@ class Controller:
             {'button': Buttons.send_screen, 'condition': Settings.screen},
             {'button': Buttons.make_joke, 'condition': Settings.make_joke},
             {'button': Buttons.user_stats, 'condition': Settings.user_stats},
-            {'button': Buttons.essay, 'condition': Settings.essay},  # TODO: доступность раздела
+            {'button': Buttons.essay, 'condition': Settings.essay},
             {'button': Buttons.random_post, 'condition': Settings.random_post},
             {'button': Buttons.donate, 'condition': Settings.donate},
         ]

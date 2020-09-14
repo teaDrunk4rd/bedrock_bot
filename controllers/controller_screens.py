@@ -205,6 +205,6 @@ class ControllerScreens(Controller):
                 else:
                     vk.send(event.user_id, 'я же просил скрины')
             else:
-                vk.send(event.user_id, Config.user_error_message)
+                vk.send(event.user_id, Config.user_error_message)  # TODO: throw exception
         else:
             vk.send(event.user_id, 'что-то не вижу картинки в твоем сообщении')
