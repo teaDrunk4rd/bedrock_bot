@@ -61,11 +61,11 @@ class ControllerSettings(Controller):
             elif args == self.__sections_args[0]:
                 Settings.bot = not Settings.bot
             else:
-                return self.send_buttons(vk, event, Config.admin_error_message)
+                raise Exception('проблемс с args при изменении настроек бота')
             self.update_user_buttons()
             return self.send_buttons(vk, event)
         else:
-            return self.send_buttons(vk, event, Config.admin_error_message)
+            raise Exception('проблемс при изменении настройки бота')
 
     def __edit_db_enity(self, args):
         setting = db.session.query(Settings).filter(Settings.name == args).first()

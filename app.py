@@ -1,4 +1,6 @@
 import json
+import random
+
 from vk_api.vk_api import VkApi, ApiError
 from config import Config
 from controllers.controller_action_with_user import ControllerActionWithUser
@@ -65,8 +67,9 @@ class App:
                         coincidence['main'](self.vk, event)
         except StopIteration:
             return None
-        # except Exception as e:
-        #     App.write_log(self.vk, event.message_id, e)
+        except Exception as e:
+            self.write_error_message(event.user_id)
+            self.write_log(self.vk, event.message_id, e)
 
     def process_unread_messages(self):
         count = 200
@@ -97,3 +100,20 @@ class App:
             vk.send(Config.log_receiver, msg, forward_messages=message_id)
         else:
             vk.send(Config.log_receiver, '\n'.join(e.args), forward_messages=message_id)
+
+    def write_error_message(self, user_id):
+        elevator_photos = [
+            f'photo-{Config.group_id}_{id}' for id in [457239022, 457239023, 457239024, 457239025, 457239026, 457239027]
+        ]
+        elevator_audios = [
+            f'audio{id}' for id in ['322270793_456245436', '322270793_456245435']
+        ]
+        self.vk.send(
+            user_id,
+            'что-то пошло не так. попытайтся снова через некоторое время. '
+            'если ошибка повторяется несколько раз, то напиши админу',
+            attachments=[
+                f'{elevator_photos[random.randint(0, len(elevator_photos) - 1)]},'
+                f'{elevator_audios[random.randint(0, len(elevator_audios) - 1)]}'
+            ]
+        )
