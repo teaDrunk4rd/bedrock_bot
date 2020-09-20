@@ -16,22 +16,23 @@ from db.models.essay import Essay
 class DB:
     session = None
 
-    def __init__(self):
+    def __init__(self, from_thread=False):
         engine = create_engine(Config.db_link, echo=False)  # TODO: db backups
         Session = sessionmaker(bind=engine)
         self.session = scoped_session(Session)()
-        Base.metadata.create_all(engine, tables=[
-            Settings.__table__,
-            PictureStatus.__table__,
-            Posts.__table__,
-            Role.__table__,
-            User.__table__,
-            Joke.__table__,
-            Essay.__table__,
-            Picture.__table__
-        ])
-        self.__run_seeders()
-        self.__set_consts()
+        if not from_thread:
+            Base.metadata.create_all(engine, tables=[
+                Settings.__table__,
+                PictureStatus.__table__,
+                Posts.__table__,
+                Role.__table__,
+                User.__table__,
+                Joke.__table__,
+                Essay.__table__,
+                Picture.__table__
+            ])
+            self.__run_seeders()
+            self.__set_consts()
 
     def __run_seeders(self):
         if not any(self.session.query(PictureStatus)):

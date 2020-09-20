@@ -1,6 +1,5 @@
 import json
 import random
-
 from vk_api.vk_api import VkApi, ApiError
 from config import Config
 from controllers.controller_action_with_user import ControllerActionWithUser
@@ -97,9 +96,9 @@ class App:
             ]
             msg = f'{e.error["error_code"]}: {e.error["error_msg"]}\n' \
                   f'{json.dumps(request_params, indent=2, ensure_ascii=False)}'
-            vk.send(Config.log_receiver, msg, forward_messages=message_id)
+            vk.send(Config.developer, msg, forward_messages=message_id)
         else:
-            vk.send(Config.log_receiver, '\n'.join(e.args), forward_messages=message_id)
+            vk.send(Config.developer, [f'{arg}\n' for arg in e.args], forward_messages=message_id)
 
     def write_error_message(self, user_id):
         elevator_photos = [

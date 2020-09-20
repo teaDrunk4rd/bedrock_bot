@@ -50,7 +50,8 @@ class ControllerEditors(Controller):
     def add_remove_editor_button(vk, event, path):
         admin = db.get_user(event.user_id)
         db.update(admin, {User.path: path})
-        vk.send(event.user_id, f'вводи id в формате "id{event.user_id}"', [[Buttons.change_command(Buttons.to_main, Buttons.editors)]])
+        vk.send(event.user_id, f'вводи id в формате "id{event.user_id}"',
+                [[Buttons.change_command(Buttons.to_main, Buttons.editors)]])
 
     @getter_id
     def add_editor(self, vk, event, user_id):

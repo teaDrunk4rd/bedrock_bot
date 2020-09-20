@@ -31,7 +31,7 @@ class ControllerStatistics(Controller):
         confirmed_screens = db.session.query(Picture).filter(Picture.status_id == PictureStatus.confirmed).count()
         rejected_screens = db.session.query(Picture).filter(Picture.status_id == PictureStatus.rejected).count()
         not_viewed_jokes = db.session.query(Joke).filter(Joke.viewed != True).count()
-        users = db.session.query(User).filter(User.user_id == Role.user).order_by(User.scores).all()[:10]  # .filter(User.user_id.notin_(Config.admin_ids))
+        users = db.session.query(User).filter(User.user_id == Role.user).order_by(User.scores).all()[:10]
         user_stats = ''.join([
             f'{num + 1}. {vk.get_user_name(user.user_id)}(vk.com/id{user.user_id}): {user.scores}\n'
             for num, user in enumerate(users)

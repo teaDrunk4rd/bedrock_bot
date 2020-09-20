@@ -37,17 +37,13 @@ class ControllerBaseRules(Controller):
             },
 
             {
-                'condition': lambda vk, event: 'ты пидор' in event.text.lower() and
-                                               db.get_user_path(event.user_id) != Buttons.get_key(Buttons.make_joke),
+                'condition': lambda vk, event:
+                    'ты пидор' in event.text.lower() and self.need_process_message(event.user_id),
                 'main': lambda vk, event: vk.send_message_sticker(event.user_id, 'а может ты пидор?', 49)
             },
             {
                 'condition': lambda vk, event:
-                    self.any_in(self.bad_words, event.text.lower()) and
-                    db.get_user_path(event.user_id) not in [
-                        Buttons.get_key(Buttons.make_joke),
-                        Buttons.get_key(Buttons.comment_screen_reject),
-                        Buttons.get_key(Buttons.essay)],
+                    self.any_in(self.bad_words, event.text.lower()) and self.need_process_message(event.user_id),
                 'main': lambda vk, event: self.insult(vk, event)
             },
             {
@@ -92,18 +88,14 @@ class ControllerBaseRules(Controller):
                     'сори',
                     'сорямба',
                     'не хотел обидеть тебя'
-                ], event.text.lower()) and db.get_user_path(event.user_id) not in [
-                        Buttons.get_key(Buttons.make_joke),
-                        Buttons.get_key(Buttons.comment_screen_reject),
-                        Buttons.get_key(Buttons.essay)],
+                ], event.text.lower()) and self.need_process_message(event.user_id),
                 'main': lambda vk, event: self.get_apology(vk, event)
             },
             {
                 'condition': lambda vk, event:
                     event.user_id not in Config.admin_ids and
                     db.session.query(User).filter(User.user_id == event.user_id).first() and
-                    db.session.query(User).filter(User.user_id == event.user_id).first().apologies_count > 0 and
-                    db.get_user_path(event.user_id) != Buttons.get_key(Buttons.make_joke),
+                    db.session.query(User).filter(User.user_id == event.user_id).first().apologies_count > 0,
                 'main': lambda vk, event: self.demand_apology(vk, event)
             },
         ]

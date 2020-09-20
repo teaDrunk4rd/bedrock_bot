@@ -2,7 +2,6 @@ from buttons import Buttons
 from controllers.controller import Controller
 from db.db import db
 import random
-
 from db.models.posts import Posts
 
 

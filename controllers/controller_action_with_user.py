@@ -20,12 +20,12 @@ class ControllerActionWithUser(Controller):
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.ban_user) and
-                    db.check_user_current_path(event.user_id, f'{Buttons.get_key(Buttons.action_with_user)}: id', True),
+                    db.check_user_current_path(event.user_id, f'{Buttons.get_key(Buttons.action_with_user)}: id', in_arg=True),
                 'admin': lambda vk, event: self.ban_unban_user(vk, event, ban=True)
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.unban_user) and
-                    db.check_user_current_path(event.user_id, f'{Buttons.get_key(Buttons.action_with_user)}: id', True),
+                    db.check_user_current_path(event.user_id, f'{Buttons.get_key(Buttons.action_with_user)}: id', in_arg=True),
                 'admin': lambda vk, event: self.ban_unban_user(vk, event, ban=False)
             },
             {
@@ -34,7 +34,8 @@ class ControllerActionWithUser(Controller):
                     self.add_remove_scores_button(vk, event, Buttons.add_scores, 'сколько очков добавить?')
             },
             {
-                'condition': lambda vk, event: db.check_user_current_path(event.user_id, f'{Buttons.get_key(Buttons.add_scores)}: id', True),
+                'condition': lambda vk, event:
+                    db.check_user_current_path(event.user_id, f'{Buttons.get_key(Buttons.add_scores)}: id', in_arg=True),
                 'admin': lambda vk, event: self.add_remove_scores(vk, event, action=lambda x, y: x + y)
             },
             {
@@ -43,7 +44,8 @@ class ControllerActionWithUser(Controller):
                     self.add_remove_scores_button(vk, event, Buttons.remove_scores, 'сколько очков отнять?')
             },
             {
-                'condition': lambda vk, event: db.check_user_current_path(event.user_id, f'{Buttons.get_key(Buttons.remove_scores)}: id', True),
+                'condition': lambda vk, event:
+                    db.check_user_current_path(event.user_id, f'{Buttons.get_key(Buttons.remove_scores)}: id', in_arg=True),
                 'admin': lambda vk, event: self.add_remove_scores(vk, event, action=lambda x, y: x - y)
             },
         ]

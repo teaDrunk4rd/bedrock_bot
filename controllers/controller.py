@@ -1,6 +1,7 @@
 from ast import literal_eval
 from buttons import Buttons
 from config import Config
+from db.db import db
 from db.models.settings import Settings
 
 
@@ -82,6 +83,14 @@ class Controller:
     @staticmethod
     def any_in(values, message):
         return type(values) is list and any([val for val in values if val in message])
+
+    @staticmethod
+    def need_process_message(user_id):
+        return db.get_user_path(user_id) not in [
+            Buttons.get_key(Buttons.make_joke),
+            Buttons.get_key(Buttons.comment_screen_reject),
+            Buttons.get_key(Buttons.essay)
+        ]
 
     @staticmethod
     def plural_form(n, form1, form2, form5):
