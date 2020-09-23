@@ -1,6 +1,6 @@
 import json
 import random
-from vk_api.vk_api import VkApi, ApiError
+from vk_api.vk_api import ApiError
 from config import Config
 from controllers.controller_action_with_user import ControllerActionWithUser
 from controllers.controller_base_rules import ControllerBaseRules
@@ -25,7 +25,7 @@ class App:
     handlers = None
 
     def __init__(self):
-        self.vk = Vk(VkApi(token=Config.token))
+        self.vk = Vk(Config.token)
         ControllerBaseRules().update_user_buttons()
         controller_essay = ControllerEssay()
         self.handlers = [

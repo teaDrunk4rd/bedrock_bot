@@ -1,6 +1,7 @@
 import json
 import random
 import sys
+from vk_api import VkApi
 from vk_api.longpoll import VkLongPoll
 from media_types import MediaTypes
 
@@ -9,9 +10,9 @@ class Vk:
     session = None
     long_pool = None
 
-    def __init__(self, vk_session):
-        self.session = vk_session
-        self.long_pool = VkLongPoll(vk_session)
+    def __init__(self, token):
+        self.session = VkApi(token=token)
+        self.long_pool = VkLongPoll(self.session)
 
     def send(self, id, text, buttons=None, forward_messages=None, attachments=None):
         if type(text) is list:
