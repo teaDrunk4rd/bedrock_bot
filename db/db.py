@@ -1,3 +1,4 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from buttons import Buttons
@@ -11,6 +12,8 @@ from db.models.role import Role
 from db.models.settings import Settings
 from db.models.user import User
 from db.models.essay import Essay
+
+location = '\\'.join(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))).split('\\')[:-1])
 
 
 class DB:
@@ -53,7 +56,7 @@ class DB:
                 Settings('donate', True)
             ])
 
-        with open('posts.txt', 'r') as f:
+        with open(os.path.join(location, 'posts.txt'), 'r', encoding='utf-8') as f:
             lines = [int(line.strip()) for line in f]
         posts = self.session.query(Posts).first()
         if not posts:

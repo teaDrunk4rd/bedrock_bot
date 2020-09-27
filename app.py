@@ -41,6 +41,8 @@ class App:
 
             *ControllerLowPriority().handlers
         ]
+        self.elevator_photos = [457239022, 457239023, 457239024, 457239025, 457239026, 457239027]
+        self.elevator_audios = ['322270793_456245436', '322270793_456245435']
         p = Process(target=controller_essay.proceed_essays, args=(self.vk,))
         p.start()
 
@@ -83,6 +85,7 @@ class App:
 
     @staticmethod
     def write_log(vk, message_id, e):
+        print(e)
         if type(e) is ApiError:
             request_params = [
                 *[
@@ -98,14 +101,14 @@ class App:
                   f'{json.dumps(request_params, indent=2, ensure_ascii=False)}'
             vk.send(Config.developer, msg, forward_messages=message_id)
         else:
-            vk.send(Config.developer, [f'{arg}\n' for arg in e.args], forward_messages=message_id)
+            vk.send(Config.developer, '\n'.join(str(arg) for arg in e.args), forward_messages=message_id)
 
     def write_error_message(self, user_id):
         elevator_photos = [
-            f'photo-{Config.group_id}_{id}' for id in [457239022, 457239023, 457239024, 457239025, 457239026, 457239027]
+            f'photo-{Config.group_id}_{id}' for id in self.elevator_photos
         ]
         elevator_audios = [
-            f'audio{id}' for id in ['322270793_456245436', '322270793_456245435']
+            f'audio{id}' for id in self.elevator_audios
         ]
         self.vk.send(
             user_id,
