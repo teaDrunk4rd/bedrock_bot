@@ -63,19 +63,23 @@ class ControllerEssay(Controller):
         if db.session.query(Essay).filter(Essay.user_id == event.user_id, Essay.processed_text == None).first():
             vk.send(event.user_id, self.reject_message, self.main_menu_buttons['main'])
         else:
-            db.add(Essay(event.user_id, event.message_id, event.text))
-            vk.send(event.user_id, 'мне нужно время на прочтение. я тебе обязательно напишу по поводу текста',
-                    self.main_menu_buttons['main'])
-            if not self.calculating:
-                p = Process(target=self.proceed_essays, args=(vk,))
-                p.start()
+            sentences_len = len(re.split(r'[.!?]+', event.text.replace('\n', '')))
+            if sentences_len < 10:
+                vk.send(event.user_id, 'чел, тут предложений не так много, давай как-нибудь сам', self.main_menu_buttons['main'])
+            else:
+                db.add(Essay(event.user_id, event.message_id, event.text))
+                vk.send(event.user_id, 'мне нужно время на прочтение. я тебе обязательно напишу по поводу текста',
+                        self.main_menu_buttons['main'])
+                if not self.calculating:
+                    p = Process(target=self.proceed_essays, args=(vk,))
+                    p.start()
         db.update(user, {User.path: ''})
 
     def proceed_essays(self, vk, pool_capacity=4, is_test=False):  # run only through Process other than tests
         self.calculating = True
         while any(db.session.query(Essay).filter(Essay.processed_text == None)):
             essays = db.session.query(Essay).filter(Essay.processed_text == None).order_by(Essay.id).all()
-            pool = ThreadPool(pool_capacity)  # Необходимо поэкспериментировать с кол-вом потоков на железе сервера
+            pool = ThreadPool(pool_capacity)  # Необходимо поэкспериментировать с кол-вом потоков на железе сервера (макс. 4)
             pool.starmap(self.generate_essay, [(vk, essay, is_test) for essay in essays])
             pool.close()
             pool.join()
@@ -124,27 +128,35 @@ class ControllerEssay(Controller):
             all_sentences = sorted(all_sentences, key=lambda x: -x['power'])[:3]
         return '. '.join([sentence['sentence'] for sentence in all_sentences])
 
-    def fast_test_speed(self, vk, event):
+    def __add_for_test(self, vk):
         vk.send(Config.developer, 'okay then, give me some time')
         with open(os.path.join(location, 'test.txt'), 'r', encoding='utf-8') as f:
-            texts = f.read().split('\n\n')
-        db.add([Essay(Config.developer, event.message_id, text) for text in texts])
+            return f.read().split('\n\n')
 
-        time_to_proceed = time.time()
-        self.proceed_essays(vk, is_test=True)
-        time_to_proceed = round(time.time() - time_to_proceed, 2)
-
+    def __delete_for_test(self, vk, texts, message):
         db.session.execute(Essay.__table__.delete().where(Essay.text.in_(texts)))
         db.session.commit()
-        vk.send(Config.developer, f'time_to_proceed: {time_to_proceed}')
+        vk.send(Config.developer, message)
+
+    def fast_test_speed(self, vk, event):
+        texts = self.__add_for_test(vk)
+        db.add([Essay(Config.developer, event.message_id, text) for text in texts])
+        try:
+            pool_capacity = int(event.text.replace('fast test ', '').replace('fast_test ', ''))
+        except:
+            pool_capacity = 4
+
+        time_to_proceed = time.time()
+        self.proceed_essays(vk, pool_capacity=pool_capacity, is_test=True)
+        time_to_proceed = round(time.time() - time_to_proceed, 2)
+
+        self.__delete_for_test(vk, texts, f'time_to_proceed({pool_capacity} thr): {time_to_proceed}')
 
     def full_test_speed(self, vk, event):
-        vk.send(Config.developer, 'okay then, give me some time')
-        with open(os.path.join(location, 'test.txt'), 'r', encoding='utf-8') as f:
-            texts = f.read().split('\n\n')
+        texts = self.__add_for_test(vk)
 
         times = []
-        for pool_capacity in range(1, 15):
+        for pool_capacity in range(1, 15):  # сервер падает при 5 потоках из-за нехватки памяти в 512Мб ¯\_(ツ)_/¯
             average_time = {'pool_capacity': pool_capacity}
             attempt = 5
             for i in range(attempt):
@@ -158,6 +170,4 @@ class ControllerEssay(Controller):
                 'time': sum(average_time[i] for i in range(attempt)) / attempt
             })
 
-        db.session.execute(Essay.__table__.delete().where(Essay.text.in_(texts)))
-        db.session.commit()
-        vk.send(Config.developer, json.dumps(times, indent=2, ensure_ascii=False))
+        self.__delete_for_test(vk, texts, json.dumps(times, indent=2, ensure_ascii=False))
