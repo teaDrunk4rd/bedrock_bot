@@ -4,6 +4,7 @@ from db.db import db
 from db.models.joke import Joke
 from db.models.settings import Settings
 from db.models.user import User
+from decorators.scores_getter import scores_getter
 
 
 class ControllerJokes(Controller):
@@ -104,48 +105,38 @@ class ControllerJokes(Controller):
         db.update(user, {User.path: Buttons.get_key(Buttons.jokes_cringe)})
         vk.send(event.user_id, 'сколько очков отнять?', [[Buttons.jokes_refresh]])
 
-    def confirm_joke(self, vk, event):
-        try:
-            scores = int(event.text)
-            if scores < 0:
-                scores *= -1
-            jokes = self.__get_jokes()
-            if any(jokes):
-                joke = jokes[0]
-                joke.viewed = True
-                joke.score = scores
-                db.update(db.get_user(joke.user_id), {User.scores: User.scores + scores})
-                vk.send(joke.user_id,
-                        f'поздравляю, твою шутку оценили на {scores} {self.plural_form(scores, "очко", "очка", "очков")}\n'
-                        f'на данный момент у тебя {joke.user.scores} {self.plural_form(joke.user.scores, "очко", "очка", "очков")}',
-                        forward_messages=joke.message_id)
-                self.check_joke(vk, event)
-            else:
-                self.__over(vk, event)
-        except ValueError:
-            vk.send(event.user_id, 'ты ввел хуйню какую-то, мне нужно число')  # TODO: decorator
+    @scores_getter
+    def confirm_joke(self, vk, event, scores):
+        jokes = self.__get_jokes()
+        if any(jokes):
+            joke = jokes[0]
+            joke.viewed = True
+            joke.score = scores
+            db.update(db.get_user(joke.user_id), {User.scores: User.scores + scores})
+            vk.send(joke.user_id,
+                    f'поздравляю, твою шутку оценили на {scores} {self.plural_form(scores, "очко", "очка", "очков")}\n'
+                    f'на данный момент у тебя {joke.user.scores} {self.plural_form(joke.user.scores, "очко", "очка", "очков")}',
+                    forward_messages=joke.message_id)
+            self.check_joke(vk, event)
+        else:
+            self.__over(vk, event)
 
-    def reject_joke(self, vk, event):
-        try:
-            scores = int(event.text)
-            if scores < 0:
-                scores *= -1
-            jokes = self.__get_jokes()
-            if any(jokes):
-                joke = jokes[0]
-                joke.viewed = True
-                joke.score = scores * -1
-                db.update(db.get_user(joke.user_id), {User.scores: User.scores - scores})
-                scores_str = f'-{scores}' if scores != 0 else scores
-                vk.send(joke.user_id,
-                        f'твою шутку оценили на {scores_str} {self.plural_form(scores, "очко", "очка", "очков")}\n'
-                        f'на данный момент у тебя {joke.user.scores} {self.plural_form(joke.user.scores, "очко", "очка", "очков")}',
-                        forward_messages=joke.message_id)
-                self.check_joke(vk, event)
-            else:
-                self.__over(vk, event)
-        except ValueError:
-            vk.send(event.user_id, 'ты ввел хуйню какую-то, мне нужно число')
+    @scores_getter
+    def reject_joke(self, vk, event, scores):
+        jokes = self.__get_jokes()
+        if any(jokes):
+            joke = jokes[0]
+            joke.viewed = True
+            joke.score = scores * -1
+            db.update(db.get_user(joke.user_id), {User.scores: User.scores - scores})
+            scores_str = f'-{scores}' if scores != 0 else scores
+            vk.send(joke.user_id,
+                    f'твою шутку оценили на {scores_str} {self.plural_form(scores, "очко", "очка", "очков")}\n'
+                    f'на данный момент у тебя {joke.user.scores} {self.plural_form(joke.user.scores, "очко", "очка", "очков")}',
+                    forward_messages=joke.message_id)
+            self.check_joke(vk, event)
+        else:
+            self.__over(vk, event)
 
     @staticmethod
     def make_admin_laugh_button(vk, event):

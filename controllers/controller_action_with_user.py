@@ -3,8 +3,10 @@ from config import Config
 from controllers.controller import Controller
 from controllers.controller_statistics import ControllerStatistics
 from db.db import db
+from db.models.role import Role
 from db.models.user import User
-from getter_id_decorator import getter_id
+from decorators.scores_getter import scores_getter
+from decorators.id_getter import id_getter
 
 
 class ControllerActionWithUser(Controller):
@@ -36,7 +38,7 @@ class ControllerActionWithUser(Controller):
             {
                 'condition': lambda vk, event:
                     db.check_user_current_path(event.user_id, f'{Buttons.get_key(Buttons.add_scores)}: id', in_arg=True),
-                'admin': lambda vk, event: self.add_remove_scores(vk, event, action=lambda x, y: x + y)
+                'admin': lambda vk, event: self.add_scores(vk, event)
             },
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.remove_scores),
@@ -46,7 +48,7 @@ class ControllerActionWithUser(Controller):
             {
                 'condition': lambda vk, event:
                     db.check_user_current_path(event.user_id, f'{Buttons.get_key(Buttons.remove_scores)}: id', in_arg=True),
-                'admin': lambda vk, event: self.add_remove_scores(vk, event, action=lambda x, y: x - y)
+                'admin': lambda vk, event: self.remove_scores(vk, event)
             },
         ]
 
@@ -56,17 +58,19 @@ class ControllerActionWithUser(Controller):
         db.update(admin, {User.path: Buttons.get_key(Buttons.action_with_user)})
         vk.send(event.user_id, f'вводи id в формате "id{event.user_id}"', [[Buttons.to_main]])
 
-    @getter_id
+    @id_getter
     def action_with_user_id(self, vk, event, user_id):
         user = db.session.query(User).filter(User.user_id == user_id).first()
         ControllerActionWithUser.__send_user_stats(vk, event.user_id, user)
         admin = db.get_user(event.user_id)
-        db.update(admin, {User.path: f'{Buttons.get_key(Buttons.action_with_user)}: id{user.user_id}'})
+        db.update(admin, {User.path: f'{Buttons.get_key(Buttons.action_with_user)}: id{user_id}'})
 
     @staticmethod
     def __send_user_stats(vk, admin_id, user):
         if user:
+            role = 'Редактор\n' if user.role_id == Role.editor else ''
             message = f'{vk.get_user_name(user.user_id)}\n' \
+                      f'{role}' \
                       f'Статус: {user.get_status()}\n' \
                       f'{ControllerStatistics.get_user_stats(user.user_id)}'
             buttons = [
@@ -75,7 +79,7 @@ class ControllerActionWithUser(Controller):
             ]
             vk.send(admin_id, message, buttons)
         else:
-            vk.send(user.user_id, 'чел с таким id не взаимодействовал пока с ботом')
+            vk.send(admin_id, 'чел с таким id не взаимодействовал пока с ботом')
 
     @staticmethod
     def ban_unban_user(vk, event, ban):
@@ -96,17 +100,24 @@ class ControllerActionWithUser(Controller):
         db.update(admin, {User.path: f'{Buttons.get_key(button)}: id{user_id}'})
         vk.send(event.user_id, message, [[Buttons.change_command(Buttons.to_main, Buttons.action_with_user)]])
 
-    @staticmethod
-    def add_remove_scores(vk, event, action):
-        try:
-            scores = int(event.text.replace('id', ''))
-            admin = db.get_user(event.user_id)
-            user_id = int(admin.first().path.split(': ')[1].replace('id', ''))
-            user = db.session.query(User).filter(User.user_id == user_id).first()
-            user.scores = action(user.scores, scores)
-            db.session.commit()
-            ControllerActionWithUser.__send_user_stats(vk, event.user_id, user)
-            admin = db.get_user(event.user_id)
-            db.update(admin, {User.path: f'{Buttons.get_key(Buttons.action_with_user)}: id{user.user_id}'})
-        except ValueError:
-            vk.send(event.user_id, 'мне нужно число очков')
+    @scores_getter
+    def add_scores(self, vk, event, scores):
+        admin = db.get_user(event.user_id)
+        user_id = int(admin.first().path.split(': ')[1].replace('id', ''))
+        user = db.session.query(User).filter(User.user_id == user_id).first()
+        user.scores = user.scores + scores
+        db.session.commit()
+        ControllerActionWithUser.__send_user_stats(vk, event.user_id, user)
+        admin = db.get_user(event.user_id)
+        db.update(admin, {User.path: f'{Buttons.get_key(Buttons.action_with_user)}: id{user.user_id}'})
+
+    @scores_getter
+    def remove_scores(self, vk, event, scores):
+        admin = db.get_user(event.user_id)
+        user_id = int(admin.first().path.split(': ')[1].replace('id', ''))
+        user = db.session.query(User).filter(User.user_id == user_id).first()
+        user.scores = user.scores - scores
+        db.session.commit()
+        ControllerActionWithUser.__send_user_stats(vk, event.user_id, user)
+        admin = db.get_user(event.user_id)
+        db.update(admin, {User.path: f'{Buttons.get_key(Buttons.action_with_user)}: id{user.user_id}'})

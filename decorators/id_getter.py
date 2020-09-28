@@ -1,5 +1,5 @@
 
-def getter_id(function_to_decorate):
+def id_getter(function_to_decorate):
     def a_wrapper_accepting_arguments(self, vk, event):
         try:
             user_id = int(event.text.replace('id', ''))

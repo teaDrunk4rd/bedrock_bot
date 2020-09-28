@@ -166,8 +166,7 @@ class ControllerScreens(Controller):
         db.update(user, {User.path: Buttons.get_key(Buttons.send_screen)})
         vk.send(event.user_id, 'жду твой скрин, передам его админу', [[Buttons.to_main]])
 
-    @staticmethod
-    def send_screen(vk, event):
+    def send_screen(self, vk, event):
         if event.attachments != {}:
             all_photos, duplicates_count, confirmed_count = True, 0, 0
             attachments = vk.get_message_attachments(event.message_id)
@@ -187,21 +186,21 @@ class ControllerScreens(Controller):
 
                 if all_photos:
                     if confirmed_count == 1 and duplicates_count == 0:
-                        vk.send(event.user_id, 'отлично, отпишу после того как проверят твою фотокарточку')
+                        self.__confirm(vk, event.user_id, 'отлично, отпишу после того как проверят твою фотокарточку')
                     elif confirmed_count + duplicates_count == 1:
                         vk.send(event.user_id, f'не, такую фотку я уже видел, ее не приму')
                     else:
                         photos_plural = ControllerScreens.plural_form(confirmed_count, 'фотокарточку', 'фотокарточки', 'фотокарточек')
                         if duplicates_count == 0:
-                            vk.send(event.user_id, f'отлично, отпишу после того как проверят все {confirmed_count} {photos_plural}')
+                            self.__confirm(vk, event.user_id, f'отлично, отпишу после того как проверят все {confirmed_count} {photos_plural}')
                         elif duplicates_count != 0:
-                            vk.send(event.user_id, f'ты дублируешь фотки, я зачел {confirmed_count} {photos_plural}')
+                            self.__confirm(vk, event.user_id, f'ты дублируешь фотки, я зачел {confirmed_count} {photos_plural}')
                 elif not all_photos and confirmed_count + duplicates_count != 0:
                     if confirmed_count != 0 and duplicates_count == 0:
-                        vk.send(event.user_id, 'в твоих вложениях есть что-то кроме скринов. скрины я возьму, остальное оставь себе')
+                        self.__confirm(vk, event.user_id, 'в твоих вложениях есть что-то кроме скринов. скрины я возьму, остальное оставь себе')
                     elif duplicates_count != 0:
                         photos_plural = ControllerScreens.plural_form(confirmed_count, 'фотокарточку', 'фотокарточки', 'фотокарточек')
-                        vk.send(event.user_id, f'ты дублируешь фотки, я зачел {confirmed_count} {photos_plural}')
+                        self.__confirm(vk, event.user_id, f'ты дублируешь фотки, я зачел {confirmed_count} {photos_plural}')
                 else:
                     vk.send(event.user_id, 'я же просил скрины')
             else:
@@ -209,4 +208,5 @@ class ControllerScreens(Controller):
         else:
             vk.send(event.user_id, 'что-то не вижу картинки в твоем сообщении')
 
-        # TODO: buttons
+    def __confirm(self, vk, user_id, message):
+        vk.send(user_id, message, self.main_menu_buttons['main'])

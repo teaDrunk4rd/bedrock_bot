@@ -1,5 +1,5 @@
 from buttons import Buttons
-from config import Config
+from sqlalchemy import func, desc
 from controllers.controller import Controller
 from db.db import db
 from db.models.joke import Joke
@@ -47,13 +47,28 @@ class ControllerStatistics(Controller):
         vk.send(event.user_id, ControllerStatistics.get_user_stats(event.user_id))
 
     @staticmethod
-    def get_user_stats(user_id):  # TODO: место в топе
+    def get_user_stats(user_id):
         scores = db.session.query(User).filter(User.user_id == user_id).first().scores
+        place_in_top = db.session.execute(f'''
+            with users as (     
+                select *, row_number() over(order by users.scores desc) as num 
+                from users     
+                where role_id = {Role.user}
+            ), num as (     
+                select num     
+                from users     
+                where user_id = {user_id} 
+            ) 
+            select num.num, count(users) 
+            from num join users on true 
+            group by num.num''').first()
+        place_in_top_message = f'место в топе: {place_in_top[0]} из {place_in_top[1]}\n' if place_in_top else ''
         not_checked_screens = db.session.query(Picture).filter(Picture.user_id == user_id, Picture.status_id == PictureStatus.not_checked).count()
         confirmed_screens = db.session.query(Picture).filter(Picture.user_id == user_id, Picture.status_id == PictureStatus.confirmed).count()
         rejected_screens = db.session.query(Picture).filter(Picture.user_id == user_id, Picture.status_id == PictureStatus.rejected).count()
         scores_jokes = db.session.query(Joke).filter(Joke.user_id == user_id, Joke.score > 0).count()
-        return f'кол-во очков: {scores}\n' \
+        return f'{place_in_top_message}\n' \
+               f'кол-во очков: {scores}\n' \
                f'кол-во непроверенных скринов: {not_checked_screens}\n' \
                f'кол-во принятых скринов: {confirmed_screens}\n' \
                f'кол-во отклоненных скринов: {rejected_screens}\n' \

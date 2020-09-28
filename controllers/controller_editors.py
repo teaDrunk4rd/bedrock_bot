@@ -4,7 +4,7 @@ from controllers.controller import Controller
 from db.db import db
 from db.models.role import Role
 from db.models.user import User
-from getter_id_decorator import getter_id
+from decorators.id_getter import id_getter
 
 
 class ControllerEditors(Controller):
@@ -53,7 +53,7 @@ class ControllerEditors(Controller):
         vk.send(event.user_id, f'вводи id в формате "id{event.user_id}"',
                 [[Buttons.change_command(Buttons.to_main, Buttons.editors)]])
 
-    @getter_id
+    @id_getter
     def add_editor(self, vk, event, user_id):
         user = db.get_user(user_id)
         if user_id not in Config.admin_ids and user.first().role_id != Role.editor:
@@ -62,7 +62,7 @@ class ControllerEditors(Controller):
                     self.main_menu_buttons['editor'])
         self.send_buttons(vk, event)
 
-    @getter_id
+    @id_getter
     def remove_editor(self, vk, event, user_id):
         user = db.get_user(user_id)
         if user_id not in Config.admin_ids and user.first().role_id == Role.editor:
