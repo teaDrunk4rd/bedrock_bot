@@ -40,7 +40,7 @@ class ControllerEssay(Controller):
             {
                 'condition': lambda vk, event: self.any_in([
                     'full test',
-                    'full',
+                    'full_test',
                 ], event.text.lower()) and self.need_process_message(event.user_id),
                 'admin': lambda vk, event: self.full_test_speed(vk, event)
             }

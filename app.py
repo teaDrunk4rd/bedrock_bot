@@ -68,9 +68,9 @@ class App:
                         coincidence['main'](self.vk, event)
         except StopIteration:
             return None
-        # except Exception as e:
-        #     self.write_error_message(event.user_id)
-        #     self.write_log(self.vk, event.message_id, e)
+        except Exception as e:
+            self.write_error_message(event.user_id)
+            self.write_log(self.vk, event.message_id, e)
 
     def process_unread_messages(self):
         count = 200
