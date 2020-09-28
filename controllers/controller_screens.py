@@ -208,3 +208,5 @@ class ControllerScreens(Controller):
                 raise Exception('attachment\'ы не прикрепились')
         else:
             vk.send(event.user_id, 'что-то не вижу картинки в твоем сообщении')
+
+        # TODO: buttons

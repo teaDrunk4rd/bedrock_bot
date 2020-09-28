@@ -123,7 +123,7 @@ class ControllerJokes(Controller):
             else:
                 self.__over(vk, event)
         except ValueError:
-            vk.send(event.user_id, 'ты ввел хуйню какую-то, мне нужно число')
+            vk.send(event.user_id, 'ты ввел хуйню какую-то, мне нужно число')  # TODO: decorator
 
     def reject_joke(self, vk, event):
         try:

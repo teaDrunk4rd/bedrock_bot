@@ -50,8 +50,8 @@ class App:
         try:
             user = db.session.query(User).filter(User.user_id == event.user_id).first()
             if event.user_id in Config.admin_ids or \
-                    user.role_id == Role.editor and not user.banned or \
-                    Settings.bot and (not user or not user.banned):
+                    Settings.bot and (not user or not user.banned) or \
+                    user.role_id == Role.editor and not user.banned:
                 coincidence = next((
                     rule for rule in self.handlers
                     if rule['condition'](self.vk, event) and
@@ -62,15 +62,15 @@ class App:
                 if coincidence:
                     if 'admin' in coincidence and event.user_id in Config.admin_ids:
                         coincidence['admin'](self.vk, event)
-                    elif 'editor' in coincidence and user.role_id == Role.editor:
+                    elif 'editor' in coincidence and user and user.role_id == Role.editor:
                         coincidence['editor'](self.vk, event)
                     elif 'main' in coincidence:
                         coincidence['main'](self.vk, event)
         except StopIteration:
             return None
-        except Exception as e:
-            self.write_error_message(event.user_id)
-            self.write_log(self.vk, event.message_id, e)
+        # except Exception as e:
+        #     self.write_error_message(event.user_id)
+        #     self.write_log(self.vk, event.message_id, e)
 
     def process_unread_messages(self):
         count = 200

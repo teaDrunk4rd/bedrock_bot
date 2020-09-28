@@ -47,7 +47,7 @@ class ControllerStatistics(Controller):
         vk.send(event.user_id, ControllerStatistics.get_user_stats(event.user_id))
 
     @staticmethod
-    def get_user_stats(user_id):
+    def get_user_stats(user_id):  # TODO: место в топе
         scores = db.session.query(User).filter(User.user_id == user_id).first().scores
         not_checked_screens = db.session.query(Picture).filter(Picture.user_id == user_id, Picture.status_id == PictureStatus.not_checked).count()
         confirmed_screens = db.session.query(Picture).filter(Picture.user_id == user_id, Picture.status_id == PictureStatus.confirmed).count()
