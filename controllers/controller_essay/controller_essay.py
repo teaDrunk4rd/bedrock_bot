@@ -96,6 +96,7 @@ class ControllerEssay(Controller):
                 forward_messages=unprocessed_essay.message_id
             )
         new_db_session.session.commit()
+        del new_db_session
 
     def get_essay(self, text):
         document = NormalizedDocument(text)

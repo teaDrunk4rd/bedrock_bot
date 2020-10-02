@@ -37,6 +37,9 @@ class DB:
             self.__run_seeders()
             self.__set_consts()
 
+    def __del__(self):
+        self.session.close()
+
     def __run_seeders(self):
         if not any(self.session.query(PictureStatus)):
             self.add([
