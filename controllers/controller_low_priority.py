@@ -9,11 +9,11 @@ class ControllerLowPriority(Controller):
             {
                 'condition': lambda vk, event: hasattr(event, 'payload'),
                 'admin': lambda vk, event: ControllerBaseRules.send_buttons(
-                    vk, event, 'ведется разработка',
+                    vk, event, 'стучись разрабу, где-то ошибка',
                     self.main_menu_buttons['admin']
                 ),
                 'editor': lambda vk, event: ControllerBaseRules.send_buttons(
-                    vk, event, 'ведется разработка',
+                    vk, event, 'стучись админу, где-то ошибка',
                     self.main_menu_buttons['editor']
                 ),
                 'main': lambda vk, event: ControllerBaseRules.send_buttons(

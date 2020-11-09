@@ -2,6 +2,7 @@ from buttons import Buttons
 from controllers.controller import Controller
 from db.db import db
 import random
+from config import Config
 from db.models.posts import Posts
 
 
@@ -20,4 +21,4 @@ class ControllerRandomPost(Controller):
     def send_random_post(vk, event):
         posts = db.session.query(Posts).first()
         random_post_id = posts.items[random.randint(0, posts.count)]
-        vk.send(event.user_id, '', attachments=[f'wall-168509625_{random_post_id}'])
+        vk.send(event.user_id, '', attachments=[f'wall-{Config.group_id}_{random_post_id}'])

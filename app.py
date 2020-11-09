@@ -23,6 +23,8 @@ from multiprocessing.dummy import Process
 class App:
     vk = None
     handlers = None
+    elevator_photos = []
+    elevator_audios = []
 
     def __init__(self):
         self.vk = Vk(Config.token)

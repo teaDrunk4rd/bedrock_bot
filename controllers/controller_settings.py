@@ -1,6 +1,5 @@
 from ast import literal_eval
 from buttons import Buttons
-from config import Config
 from controllers.controller import Controller
 from db.db import db
 from db.models.settings import Settings

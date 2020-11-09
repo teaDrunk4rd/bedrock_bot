@@ -60,7 +60,7 @@ class ControllerScreens(Controller):
 
     def __get_pics(self):
         return db.session.query(Picture)\
-            .filter(Picture.status_id == PictureStatus.not_checked, Picture.inspector_id == None)\
+            .filter(Picture.status_id == PictureStatus.not_checked, Picture.inspector_id is None)\
             .order_by(Picture.id).all()
 
     def __over(self, vk, event):

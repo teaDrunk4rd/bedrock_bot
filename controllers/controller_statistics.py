@@ -1,5 +1,4 @@
 from buttons import Buttons
-from sqlalchemy import func, desc
 from controllers.controller import Controller
 from db.db import db
 from db.models.joke import Joke
