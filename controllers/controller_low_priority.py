@@ -23,6 +23,10 @@ class ControllerLowPriority(Controller):
                 )
             },
             {
+                'condition': lambda vk, event: event.text.lower() == 'exception',
+                'admin': lambda vk, event: self.throw_exception()
+            },
+            {
                 'condition': lambda vk, event: event.text.lower() in [
                     Buttons.get_label(Buttons.to_main),
                     *[Buttons.get_label(button) for line in self.main_menu_buttons['main'] for button in line]
@@ -38,3 +42,6 @@ class ControllerLowPriority(Controller):
                 'main': lambda vk, event: vk.send(event.user_id, 'что ты несешь-то вообще?')
             },
         ]
+
+    def throw_exception(self):
+        raise Exception('test')
