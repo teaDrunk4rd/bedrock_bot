@@ -5,3 +5,5 @@ class Config:
     donate_app_id = -1
     token = ''
     db_link = ''
+    elevator_photos = [457239017, 457239018, 457239019, 457239020, 457239021, 457239022]
+    elevator_audios = ['322270793_456245436', '322270793_456245435']

@@ -23,8 +23,6 @@ from multiprocessing.dummy import Process
 class App:
     vk = None
     handlers = None
-    elevator_photos = []
-    elevator_audios = []
 
     def __init__(self):
         self.vk = Vk(Config.token)
@@ -43,8 +41,6 @@ class App:
 
             *ControllerLowPriority().handlers
         ]
-        self.elevator_photos = [457239022, 457239023, 457239024, 457239025, 457239026, 457239027]
-        self.elevator_audios = ['322270793_456245436', '322270793_456245435']
         p = Process(target=controller_essay.proceed_essays, args=(self.vk,))
         p.start()
 
@@ -107,10 +103,10 @@ class App:
 
     def write_error_message(self, user_id):
         elevator_photos = [
-            f'photo-{Config.group_id}_{id}' for id in self.elevator_photos
+            f'photo-{Config.group_id}_{id}' for id in Config.elevator_photos
         ]
         elevator_audios = [
-            f'audio{id}' for id in self.elevator_audios
+            f'audio{id}' for id in Config.elevator_audios
         ]
         self.vk.send(
             user_id,
