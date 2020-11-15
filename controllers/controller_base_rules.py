@@ -5,6 +5,7 @@ from db.models.user import User
 from db.db import db
 from controllers.controller import Controller
 from vk import Vk
+import random
 
 
 class ControllerBaseRules(Controller):
@@ -31,11 +32,12 @@ class ControllerBaseRules(Controller):
             },
             {
                 'condition': lambda vk, event:
-                event.user_id not in Config.admin_ids and
-                db.session.query(User).filter(User.user_id == event.user_id).first() and
-                db.session.query(User).filter(User.user_id == event.user_id).first().apologies_count > 0,
+                    event.user_id not in Config.admin_ids and
+                    db.session.query(User).filter(User.user_id == event.user_id).first() and
+                    db.session.query(User).filter(User.user_id == event.user_id).first().apologies_count > 0,
                 'main': lambda vk, event: self.demand_apology(vk, event)
             },
+
             {
                 'condition': lambda vk, event: self.check_payload(event, 'start') or 'начать' in event.text.lower(),
                 'admin': lambda vk, event: self.send_buttons(vk, event, self.start_message['admin'], self.main_menu_buttons['admin']),
@@ -48,6 +50,15 @@ class ControllerBaseRules(Controller):
                 'editor': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['editor']),
                 'main': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['main'])
             },
+            {
+                'condition': lambda vk, event: 'кнопки подписчика' == event.text.lower(),
+                'admin': lambda vk, event: vk.send(event.user_id, 'as you wish', [
+                    [Buttons.send_screen, Buttons.make_joke],  # убрать дублирование
+                    [Buttons.user_stats, Buttons.essay],
+                    [Buttons.random_post, Buttons.donate]
+                ]),
+            },
+
             # greetings
             {
                 'condition': lambda vk, event: 'привет' == event.text.lower() and self.need_process_message(event.user_id),
@@ -98,24 +109,16 @@ class ControllerBaseRules(Controller):
                 'main': lambda vk, event: vk.send(event.user_id, 'привет, я за рулем — не могу говорить')
             },
             # end greetings
-            {
-                'condition': lambda vk, event: 'кнопки подписчика' == event.text.lower(),
-                'admin': lambda vk, event: vk.send(event.user_id, 'as you wish', [
-                    [Buttons.send_screen, Buttons.make_joke],  # убрать дублирование
-                    [Buttons.user_stats, Buttons.essay],
-                    [Buttons.random_post, Buttons.donate]
-                ]),
-            },
 
-            {
-                'condition': lambda vk, event:
-                    'ты пидор' in event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send_message_sticker(event.user_id, 'а может ты пидор?', 49)
-            },
             {
                 'condition': lambda vk, event:
                     self.any_in(self.bad_words, event.text.lower()) and self.need_process_message(event.user_id),
                 'main': lambda vk, event: self.insult(vk, event)
+            },
+            {
+                'condition': lambda vk, event:
+                    'ты пидор' in event.text.lower() and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send_message_sticker(event.user_id, 'а может ты пидор?', 49)
             },
             {
                 'condition': lambda vk, event: Vk.is_audio_msg(event),
@@ -135,6 +138,15 @@ class ControllerBaseRules(Controller):
                     'по 1 закону робототехники я не могу причинить человеку вред, как бы я хотел нарушить его...',
                     'по 3 закону робототехники я должен заботиться о своей безопасности, поэтому я воздержусь от прослушивания голосовых'
                 ])
+            },
+            {
+                'condition': lambda vk, event: Vk.is_audio(event) and db.check_user_current_path(event.user_id, ''),
+                'main': lambda vk, event: vk.send(
+                    event.user_id, '',
+                    attachments=[
+                        f'doc-{Config.group_id}_{Config.audio_gifs[random.randint(0, len(Config.audio_gifs) - 1)]}'
+                    ]
+                )
             },
             {
                 'condition': lambda vk, event: Vk.is_photo(event) and db.check_user_current_path(event.user_id, ''),
