@@ -16,6 +16,27 @@ class ControllerBaseRules(Controller):
 
         self.handlers = [
             {
+                'condition': lambda vk, event: self.any_equal([
+                    'прости',
+                    'прости пожалуйста',
+                    'прости плиз',
+                    'извини',
+                    'извини пожалуйста',
+                    'извини плиз',
+                    'сори',
+                    'сорямба',
+                    'не хотел обидеть тебя'
+                ], event.text.lower()) and self.need_process_message(event.user_id),
+                'main': lambda vk, event: self.get_apology(vk, event)
+            },
+            {
+                'condition': lambda vk, event:
+                event.user_id not in Config.admin_ids and
+                db.session.query(User).filter(User.user_id == event.user_id).first() and
+                db.session.query(User).filter(User.user_id == event.user_id).first().apologies_count > 0,
+                'main': lambda vk, event: self.demand_apology(vk, event)
+            },
+            {
                 'condition': lambda vk, event: self.check_payload(event, 'start') or 'начать' in event.text.lower(),
                 'admin': lambda vk, event: self.send_buttons(vk, event, self.start_message['admin'], self.main_menu_buttons['admin']),
                 'editor': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['editor']),
@@ -130,28 +151,7 @@ class ControllerBaseRules(Controller):
                     '9/10 я скажу тебе по секрету: ты красивей админа. если у тебя есть харизма, то ты будешь пользоваться популярностью у противоположного пола',
                     '10/10 О БОГИ, удаляйте интернет, лучше вы уже не найдете. ты достоин(-а) возведения на пантеон богов',
                 ])
-            },
-            {
-                'condition': lambda vk, event: self.any_equal([
-                    'прости',
-                    'прости пожалуйста',
-                    'прости плиз',
-                    'извини',
-                    'извини пожалуйста',
-                    'извини плиз',
-                    'сори',
-                    'сорямба',
-                    'не хотел обидеть тебя'
-                ], event.text.lower()) and self.need_process_message(event.user_id),
-                'main': lambda vk, event: self.get_apology(vk, event)
-            },
-            {
-                'condition': lambda vk, event:
-                    event.user_id not in Config.admin_ids and
-                    db.session.query(User).filter(User.user_id == event.user_id).first() and
-                    db.session.query(User).filter(User.user_id == event.user_id).first().apologies_count > 0,
-                'main': lambda vk, event: self.demand_apology(vk, event)
-            },
+            }
         ]
 
     @staticmethod
