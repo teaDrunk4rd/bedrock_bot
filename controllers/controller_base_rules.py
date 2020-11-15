@@ -132,9 +132,13 @@ class ControllerBaseRules(Controller):
                 ])
             },
             {
-                'condition': lambda vk, event: self.any_in([
+                'condition': lambda vk, event: self.any_equal([
                     'прости',
+                    'прости пожалуйста',
+                    'прости плиз',
                     'извини',
+                    'извини пожалуйста',
+                    'извини плиз',
                     'сори',
                     'сорямба',
                     'не хотел обидеть тебя'

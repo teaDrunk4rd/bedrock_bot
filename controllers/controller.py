@@ -90,6 +90,10 @@ class Controller:
         return type(values) is list and any([val for val in values if val in message])
 
     @staticmethod
+    def any_equal(values, message):
+        return type(values) is list and any([val for val in values if val == message])
+
+    @staticmethod
     def need_process_message(user_id):
         return db.get_user_path(user_id) not in [
             Buttons.get_key(Buttons.make_joke),
