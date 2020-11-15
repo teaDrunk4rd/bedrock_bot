@@ -27,6 +27,56 @@ class ControllerBaseRules(Controller):
                 'editor': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['editor']),
                 'main': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['main'])
             },
+            # greetings
+            {
+                'condition': lambda vk, event: 'привет' == event.text.lower() and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send(event.user_id, 'приветствую')
+            },
+            {
+                'condition': lambda vk, event: 'здарова' == event.text.lower() and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send(event.user_id, 'здарова')
+            },
+            {
+                'condition': lambda vk, event: 'здорова' == event.text.lower() and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send(event.user_id, 'кто здорова? в любом случае это хорошо.')
+            },
+            {
+                'condition': lambda vk, event: 'здравствуйте' == event.text.lower() and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send(event.user_id, 'ну здравствуй')
+            },
+            {
+                'condition': lambda vk, event: 'приветствую' == event.text.lower() and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send(event.user_id, '*приветственное сообщение*')
+            },
+            {
+                'condition': lambda vk, event: 'hi' == event.text.lower() and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send(event.user_id, 'що Нi?')
+            },
+            {
+                'condition': lambda vk, event: 'hello' == event.text.lower() and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send(event.user_id, 'oh, u from england?')
+            },
+            {
+                'condition': lambda vk, event: 'здравствуйте, привет' == event.text.lower() and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send(event.user_id, 'денис')
+            },
+            {
+                'condition': lambda vk, event: 'ку' == event.text.lower() and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send(event.user_id, 'ку')
+            },
+            {
+                'condition': lambda vk, event: 'ку-ку' == event.text.lower() and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send(event.user_id, 'ку-ку, ёпта')
+            },
+            {
+                'condition': lambda vk, event: 'хай' == event.text.lower() and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send(event.user_id, 'это почти мат, но здравствуй')
+            },
+            {
+                'condition': lambda vk, event: 'алло' == event.text.lower() and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send(event.user_id, 'привет, я за рулем — не могу говорить')
+            },
+            # end greetings
             {
                 'condition': lambda vk, event: 'кнопки подписчика' == event.text.lower(),
                 'admin': lambda vk, event: vk.send(event.user_id, 'as you wish', [
