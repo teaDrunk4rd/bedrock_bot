@@ -209,4 +209,6 @@ class ControllerScreens(Controller):
             vk.send(event.user_id, 'что-то не вижу картинки в твоем сообщении')
 
     def __confirm(self, vk, user_id, message):
+        user = db.get_user(user_id)
+        db.update(user, {User.path: ''})
         vk.send(user_id, message, self.main_menu_buttons['main'])
