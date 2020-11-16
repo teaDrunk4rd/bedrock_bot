@@ -39,7 +39,10 @@ class ControllerLowPriority(Controller):
             },
             {
                 'condition': lambda vk, event: event.text.lower() != '',
-                'main': lambda vk, event: vk.send(event.user_id, 'что ты несешь-то вообще?')
+                'main': lambda vk, event: vk.send(event.user_id, [
+                    'что ты несешь-то вообще?',
+                    'выбрав кнопки в панели, или написав слово "кнопки", ты попадешь в основное меню.'
+                ])
             },
         ]
 

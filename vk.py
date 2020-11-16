@@ -78,3 +78,7 @@ class Vk:
     @staticmethod
     def is_audio(event):
         return event.attachments and event.attachments.get('attach1_type') == MediaTypes.audio
+
+    @staticmethod
+    def is_video(event):
+        return event.attachments and event.attachments.get('attach1_type') == MediaTypes.video

@@ -120,6 +120,7 @@ class ControllerBaseRules(Controller):
                     'ты пидор' in event.text.lower() and self.need_process_message(event.user_id),
                 'main': lambda vk, event: vk.send_message_sticker(event.user_id, 'а может ты пидор?', 49)
             },
+
             {
                 'condition': lambda vk, event: Vk.is_audio_msg(event),
                 'main': lambda vk, event: vk.send(event.user_id, [
@@ -162,6 +163,16 @@ class ControllerBaseRules(Controller):
                     '8/10 поздравляю, ты выиграл(-а) в генетическую рулетку, тебе очень повезло, ты выглядишь прекрасно',
                     '9/10 я скажу тебе по секрету: ты красивей админа. если у тебя есть харизма, то ты будешь пользоваться популярностью у противоположного пола',
                     '10/10 О БОГИ, удаляйте интернет, лучше вы уже не найдете. ты достоин(-а) возведения на пантеон богов',
+                ])
+            },
+            {
+                'condition': lambda vk, event: Vk.is_video(event),
+                'main': lambda vk, event: vk.send(event.user_id, [
+                    'я не буду это смотреть.',
+                    'не-не-не, давай без этого',
+                    'видео? понимаю.',
+                    'ничего не получится, чел',
+                    'если это влад бумага, то гляну'
                 ])
             }
         ]
