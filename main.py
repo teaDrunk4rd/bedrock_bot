@@ -11,5 +11,5 @@ if Settings.bot:
 
 print('Ready for New Messages')
 for event in app.vk.long_pool.listen():
-    if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+    if event.type == VkEventType.MESSAGE_NEW and event.to_me and not event.from_chat:
         app.process_new_message(event)
