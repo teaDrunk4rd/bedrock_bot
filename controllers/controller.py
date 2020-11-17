@@ -27,6 +27,7 @@ class Controller:
         ],
         'editor': [
             [Buttons.screen_check, Buttons.admin_stats],
+            [Buttons.essay, Buttons.random_post]
         ],
         'main': [  # такой порядок должен быть у кнопок
             [Buttons.send_screen, Buttons.make_joke],
