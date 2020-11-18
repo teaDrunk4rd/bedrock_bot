@@ -142,6 +142,10 @@ class ControllerBaseRules(Controller):
                 'main': lambda vk, event: vk.send(event.user_id, 'администрация')
             },
             {
+                'condition': lambda vk, event: event.text.lower() == 'ришат салихов' and self.need_process_message(event.user_id),
+                'main': lambda vk, event: vk.send(event.user_id, 'ничего про это не знаю')
+            },
+            {
                 'condition': lambda vk, event: self.any_equal([
                     'кроватькамень',
                     'бедрок',
