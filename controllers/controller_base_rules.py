@@ -232,7 +232,7 @@ class ControllerBaseRules(Controller):
             vk.send(event.user_id, '', attachments=f'photo-{Config.group_id}_{Config.uno_card}')
         else:
             messages = [
-                'это бан дурачку.',
+                'ну это бан дурачку.',
                 'бан дурачку.',
             ] if self.any_in([
                 'бедрок хуйня',
