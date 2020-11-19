@@ -36,7 +36,7 @@ class ControllerEditors(Controller):
     def send_buttons(vk, event):
         editors = db.session.query(User).filter(User.role_id == Role.editor).all()
         message = '\n'.join([
-            f'{num + 1}. {vk.get_user_name(user.user_id)}(vk.com/id{user.user_id})'
+            f'{num + 1}. {vk.get_users_names(user.user_id)}(vk.com/id{user.user_id})'
             for num, user in enumerate(editors)
         ])
         message = 'назначенные редакторы:\n' + message if message != '' else 'редакторы отсутствуют'

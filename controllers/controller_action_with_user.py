@@ -69,7 +69,7 @@ class ControllerActionWithUser(Controller):
     def __send_user_stats(vk, admin_id, user):
         if user:
             role = 'Редактор\n' if user.role_id == Role.editor else ''
-            message = f'{vk.get_user_name(user.user_id)}\n' \
+            message = f'{vk.get_users_names(user.user_id)}\n' \
                       f'{role}' \
                       f'Статус: {user.get_status()}\n' \
                       f'{ControllerStatistics.get_user_stats(user.user_id)}'
@@ -107,6 +107,9 @@ class ControllerActionWithUser(Controller):
         user = db.session.query(User).filter(User.user_id == user_id).first()
         user.scores = user.scores + scores
         db.session.commit()
+        vk.send(user.user_id,
+                f'поздравляю, тебе добавили {scores} {self.plural_form(scores, "очко", "очка", "очков")}\n'
+                f'на данный момент у тебя {user.scores} {self.plural_form(user.scores, "очко", "очка", "очков")}')
         ControllerActionWithUser.__send_user_stats(vk, event.user_id, user)
         admin = db.get_user(event.user_id)
         db.update(admin, {User.path: f'{Buttons.get_key(Buttons.action_with_user)}: id{user.user_id}'})
@@ -118,6 +121,9 @@ class ControllerActionWithUser(Controller):
         user = db.session.query(User).filter(User.user_id == user_id).first()
         user.scores = user.scores - scores
         db.session.commit()
+        vk.send(user.user_id,
+                f'у тебя отняли {scores} {self.plural_form(scores, "очко", "очка", "очков")}\n'
+                f'на данный момент у тебя {user.scores} {self.plural_form(user.scores, "очко", "очка", "очков")}')
         ControllerActionWithUser.__send_user_stats(vk, event.user_id, user)
         admin = db.get_user(event.user_id)
         db.update(admin, {User.path: f'{Buttons.get_key(Buttons.action_with_user)}: id{user.user_id}'})

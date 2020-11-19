@@ -60,10 +60,10 @@ class Vk:
         attachments = self.session.method('messages.getById', {'message_ids': message_id})
         return attachments['items'][0]['attachments'] if attachments['count'] != 0 else None
 
-    def get_user_name(self, user_id):
+    def get_users_names(self, user_ids):
         try:
-            username = self.session.method('users.get', {'user_ids': user_id})
-            return f'{username[0]["first_name"]} {username[0]["last_name"]}'
+            users = self.session.method('users.get', {'user_ids': user_ids})
+            return [f'{user["first_name"]} {user["last_name"]}' for user in users]
         except:
             return None
 

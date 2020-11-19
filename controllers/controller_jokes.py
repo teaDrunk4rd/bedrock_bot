@@ -88,6 +88,11 @@ class ControllerJokes(Controller):
         if any(jokes):
             joke = jokes[0]
             joke.viewed = True
+            vk.send(
+                joke.user_id,
+                f'твою шутку оценили на 0 очков\n'
+                f'на данный момент у тебя {joke.user.scores} {self.plural_form(joke.user.scores, "очко", "очка", "очков")}',
+                forward_messages=joke.message_id)
             db.session.commit()
             self.check_joke(vk, event)
         else:

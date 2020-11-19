@@ -30,15 +30,17 @@ class ControllerStatistics(Controller):
         confirmed_screens = db.session.query(Picture).filter(Picture.status_id == PictureStatus.confirmed).count()
         rejected_screens = db.session.query(Picture).filter(Picture.status_id == PictureStatus.rejected).count()
         not_viewed_jokes = db.session.query(Joke).filter(Joke.viewed != True).count()
-        users = db.session.query(User).filter(User.user_id == Role.user).order_by(User.scores).all()[:10]
-        user_stats = ''.join([
-            f'{num + 1}. {vk.get_user_name(user.user_id)}(vk.com/id{user.user_id}): {user.scores}\n'
+        users = db.session.query(User).filter(User.role_id == Role.user).order_by(User.scores.desc()).all()[:10]
+        user_names = vk.get_users_names(','.join([f'{user.user_id}' for user in users]))
+        user_stats = '\n'.join([
+            f'{num + 1}. {user_names[num]} (vk.com/id{user.user_id}): {user.scores}'
             for num, user in enumerate(users)
         ])
         vk.send(event.user_id, f'кол-во непроверенных скринов: {not_checked_screens}\n'
                                f'кол-во принятых скринов: {confirmed_screens}\n'
                                f'кол-во отклоненных скринов: {rejected_screens}\n'
                                f'кол-во непросмотренных приколов: {not_viewed_jokes}\n' +
+                ('\nтоп пользователей:\n' if user_stats != '' else '') +
                 user_stats)
 
     @staticmethod
