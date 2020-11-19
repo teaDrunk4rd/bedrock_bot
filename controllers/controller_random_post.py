@@ -25,5 +25,5 @@ class ControllerRandomPost(Controller):
     @staticmethod
     def send_random_post(vk, event):
         posts = db.session.query(Posts).first()
-        random_post_id = posts.items[random.randint(0, posts.count)]
+        random_post_id = posts.items[random.randint(0, posts.count - 1)]
         vk.send(event.user_id, '', attachments=[f'wall-{Config.group_id}_{random_post_id}'])
