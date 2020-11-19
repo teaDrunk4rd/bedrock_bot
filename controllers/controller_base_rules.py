@@ -158,7 +158,7 @@ class ControllerBaseRules(Controller):
             },
 
             {
-                'condition': lambda vk, event: Vk.is_audio_msg(event),
+                'condition': lambda vk, event: Vk.is_audio_msg(event) and db.check_user_current_path(event.user_id, ''),
                 'main': lambda vk, event: vk.send(event.user_id, [
                     'не, ну голосовые я точно слушать не буду',
                     'я создавался точно не для того, чтобы слушать голосовые',
