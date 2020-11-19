@@ -39,7 +39,7 @@ class ControllerBaseRules(Controller):
             },
 
             {
-                'condition': lambda vk, event: self.check_payload(event, 'start') or 'начать' in event.text.lower(),
+                'condition': lambda vk, event: self.check_payload(event, 'start') or 'начать' == event.text.lower(),
                 'admin': lambda vk, event: self.send_buttons(vk, event, self.start_message['admin'], self.main_menu_buttons['admin']),
                 'editor': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['editor']),
                 'main': lambda vk, event: self.send_buttons(vk, event, self.start_message['main'], self.main_menu_buttons['main'])
@@ -130,7 +130,10 @@ class ControllerBaseRules(Controller):
                 'main': lambda vk, event: vk.send_message_sticker(event.user_id, 'а может ты пидор?', 49)
             },
             {
-                'condition': lambda vk, event: 'гей' in event.text.lower() and self.need_process_message(event.user_id),
+                'condition': lambda vk, event: self.any_equal([
+                    'гей',
+                    'ты гей'
+                ], event.text.lower()) and self.need_process_message(event.user_id),
                 'main': lambda vk, event: vk.send(event.user_id, 'и что?')
             },
 
@@ -210,7 +213,7 @@ class ControllerBaseRules(Controller):
                 ])
             },
             {
-                'condition': lambda vk, event: Vk.is_video(event),
+                'condition': lambda vk, event: Vk.is_video(event) and db.check_user_current_path(event.user_id, ''),
                 'main': lambda vk, event: vk.send(event.user_id, [
                     'я не буду это смотреть.',
                     'не-не-не, давай без этого',
@@ -247,8 +250,10 @@ class ControllerBaseRules(Controller):
             ], event.text.lower()) else [
                 '(ﾉಥ益ಥ)ﾉ',
                 'осуждаю',
+                'найс оскобление, продолжай',
                 'не поддерживаю',
                 'фу, какой ты токсичный',
+                'очень приятно, меня зовут бедрок',
                 '┌∩┐(◣_◢)┌∩┐',
                 'ай, как мне обидно, я же робот, у меня есть чувства. хе-хе',
                 'ты молодой, шутливый, тебе все легко. это не то. это не Чикатило и даже не архивы спецслужб. меня лучше не оскорблять',
@@ -268,8 +273,7 @@ class ControllerBaseRules(Controller):
                         'messages': [
                             'ты неуважительно обратился ко мне, можешь извиниться?',
                             'извинись.',
-                            'как-то нехорошо получилось, ты меня оскорбил и меня это очень задело, извинись, пожалуйста',
-                            'очень приятно, меня зовут бедрок'
+                            'как-то нехорошо получилось, ты меня оскорбил и меня это очень задело, извинись, пожалуйста'
                         ]
                     },
                     {
@@ -277,8 +281,7 @@ class ControllerBaseRules(Controller):
                         'messages': [
                             'ну что, сложно что ли? это всего лишь одно слово',
                             'это может продолжаться вечно',
-                            'какие же кожаные мешки упрямые',
-                            'найс оскобление, продолжай'
+                            'какие же кожаные мешки упрямые'
                         ]
                     },
                     {
