@@ -87,15 +87,15 @@ class App:
         print(e)
         if type(e) is ApiError:
             request_params = [
-                *[
-                    param for param in e.error["request_params"] if
-                    param['key'] not in ['message', 'keyboard', 'user_id']
-                ], {
-                    'keyboard': json.loads(next(iter(
-                        [param for param in e.error["request_params"] if param['key'] == 'keyboard']
-                    ), None)['value'])
-                }
+                param for param in e.error["request_params"] if
+                param['key'] not in ['message', 'keyboard', 'user_id']
             ]
+            # if next(iter([param for param in e.error["request_params"] if param['key'] == 'keyboard']), None):
+            #     request_params.append({
+            #         'keyboard': json.loads(next(iter(
+            #             [param for param in e.error["request_params"] if param['key'] == 'keyboard']
+            #         ), None)['value'])
+            #     })
             msg = f'{e.error["error_code"]}: {e.error["error_msg"]}\n' \
                   f'{json.dumps(request_params, indent=2, ensure_ascii=False)}'
             vk.send(Config.developer, msg, forward_messages=message_id)

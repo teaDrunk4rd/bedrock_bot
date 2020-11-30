@@ -69,7 +69,7 @@ class ControllerActionWithUser(Controller):
     def __send_user_stats(vk, admin_id, user):
         if user:
             role = 'Редактор\n' if user.role_id == Role.editor else ''
-            message = f'{vk.get_users_names(user.user_id)}\n' \
+            message = f'{vk.get_users_names(user.user_id)[0]}\n' \
                       f'{role}' \
                       f'Статус: {user.get_status()}\n' \
                       f'{ControllerStatistics.get_user_stats(user.user_id)}'

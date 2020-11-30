@@ -35,10 +35,12 @@ class ControllerEditors(Controller):
     @staticmethod
     def send_buttons(vk, event):
         editors = db.session.query(User).filter(User.role_id == Role.editor).all()
+        editor_names = vk.get_users_names(','.join([f'{editor.user_id}' for editor in editors]))
         message = '\n'.join([
-            f'{num + 1}. {vk.get_users_names(user.user_id)}(vk.com/id{user.user_id})'
+            f'{num + 1}. {editor_names[num]}(vk.com/id{user.user_id})'
             for num, user in enumerate(editors)
         ])
+
         message = 'назначенные редакторы:\n' + message if message != '' else 'редакторы отсутствуют'
         vk.send(event.user_id, message, [
             [Buttons.add_editor, Buttons.remove_editor],
