@@ -85,6 +85,8 @@ class Buttons:
     unblock_stats = get_text_button('Запустить статистику', 'positive', get_command('unblock', 'user_stats'))
     block_donate = get_text_button('Остановить донаты', 'negative', get_command('block', 'donate'))
     unblock_donate = get_text_button('Запустить донаты', 'positive', get_command('unblock', 'donate'))
+    block_extended_screen_check = get_text_button('Отключить расширенную проверку скринов', 'negative', get_command('block', 'extended_screen_check'))
+    unblock_extended_screen_check = get_text_button('Включить расширенную проверку скринов', 'positive', get_command('unblock', 'extended_screen_check'))
 
     send_screen = get_text_button('Кинуть скрин', 'positive', get_command('send_screen'))
 

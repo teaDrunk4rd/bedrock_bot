@@ -56,7 +56,8 @@ class DB:
                 Settings('make_joke', True),
                 Settings('essay', True),
                 Settings('random_post', True),
-                Settings('donate', True)
+                Settings('donate', True),
+                Settings('extended_screen_check', True)
             ])
 
         with open(os.path.join(location, 'posts.txt'), 'r', encoding='utf-8') as f:
@@ -92,6 +93,7 @@ class DB:
         Settings.random_post = self.session.query(Settings).filter(Settings.name == 'random_post').first().value == 'true'
         Settings.user_stats = self.session.query(Settings).filter(Settings.name == 'user_stats').first().value == 'true'
         Settings.donate = self.session.query(Settings).filter(Settings.name == 'donate').first().value == 'true'
+        Settings.extended_screen_check = self.session.query(Settings).filter(Settings.name == 'extended_screen_check').first().value == 'true'
 
         Role.admin = self.session.query(Role).filter(Role.key == 'admin').first().id
         Role.editor = self.session.query(Role).filter(Role.key == 'editor').first().id

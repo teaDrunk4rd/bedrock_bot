@@ -13,7 +13,8 @@ class ControllerSettings(Controller):
         Buttons.get_args(Buttons.block_essay),
         Buttons.get_args(Buttons.block_random_post),
         Buttons.get_args(Buttons.block_stats),
-        Buttons.get_args(Buttons.block_donate)
+        Buttons.get_args(Buttons.block_donate),
+        Buttons.get_args(Buttons.block_extended_screen_check)
     ]
 
     def __init__(self):
@@ -38,6 +39,7 @@ class ControllerSettings(Controller):
              Buttons.block_random_post if Settings.random_post else Buttons.unblock_random_post],
             [Buttons.block_stats if Settings.user_stats else Buttons.unblock_stats,
              Buttons.block_donate if Settings.donate else Buttons.unblock_donate],
+            [Buttons.block_extended_screen_check if Settings.extended_screen_check else Buttons.unblock_extended_screen_check],
             [Buttons.to_main]
         ]
         vk.send(event.user_id, message, buttons)
@@ -57,6 +59,8 @@ class ControllerSettings(Controller):
                 Settings.user_stats = not Settings.user_stats
             elif args == self.__sections_args[6]:
                 Settings.donate = not Settings.donate
+            elif args == self.__sections_args[7]:
+                Settings.extended_screen_check = not Settings.extended_screen_check
             elif args == self.__sections_args[0]:
                 Settings.bot = not Settings.bot
             else:

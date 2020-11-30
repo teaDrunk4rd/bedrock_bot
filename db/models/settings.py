@@ -8,7 +8,8 @@ class Settings(Base):
     name = Column(String, nullable=False)
     value = Column(String, nullable=False)
 
-    bot, screen, make_joke, user_stats, essay, random_post, donate = None, None, None, None, None, None, None
+    bot, screen, make_joke, user_stats, essay, random_post, donate, extended_screen_check = \
+        None, None, None, None, None, None, None, None
 
     def __init__(self, name, value):
         self.name = name

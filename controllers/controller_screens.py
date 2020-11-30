@@ -82,15 +82,22 @@ class ControllerScreens(Controller):
         pictures = self.__get_pics()
         if any(pictures):
             picture = pictures[0]
-            previous_photos = '\n'.join([
-                photo.url for photo in
-                db.session.query(Picture).filter(
-                    Picture.user_id == picture.user_id, Picture.status_id == PictureStatus.confirmed).all()
-            ])
             picture.inspector_id = event.user_id
             db.session.commit()
-            message = f'предыдущие фотокарточки:\n{previous_photos}' if previous_photos else f'этот новенький'
-            message += f'\nтекущая фотокарточка:\n{picture.url}'
+
+            message = f'\nтекущая фотокарточка:\n{picture.url}'
+            if Settings.extended_screen_check:
+                previous_photos_message = 'предыдущие фотокарточки:\n'
+                previous_photos = db.session.query(Picture).filter(Picture.user_id == picture.user_id,
+                                                                   Picture.status_id == PictureStatus.confirmed).all()
+                for photo in previous_photos:
+                    previous_photos_message += f'{photo.url}\n'
+                    if len(previous_photos_message) > 3900:
+                        vk.send(event.user_id, previous_photos_message)
+                        previous_photos_message = ''
+
+                message = (previous_photos_message if previous_photos else f'этот новенький') + message
+
             vk.send(
                 event.user_id, message,
                 [[Buttons.screen_confirm, Buttons.screen_reject],
