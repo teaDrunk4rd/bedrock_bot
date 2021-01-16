@@ -9,10 +9,8 @@ from controllers.controller_low_priority import ControllerLowPriority
 from controllers.controller_settings import ControllerSettings
 from controllers.controller_statistics import ControllerStatistics
 from controllers.controller_random_post import ControllerRandomPost
-from controllers.controller_editors import ControllerEditors
 from controllers.controller_essay.controller_essay import ControllerEssay
 from db.db import db
-from db.models.role import Role
 from db.models.settings import Settings
 from db.models.user import User
 from vk import Vk
@@ -34,7 +32,6 @@ class App:
             *ControllerJokes().handlers,
             *ControllerSettings().handlers,
             *ControllerRandomPost().handlers,
-            *ControllerEditors().handlers,
             *controller_essay.handlers,
 
             *ControllerLowPriority().handlers
@@ -46,20 +43,16 @@ class App:
         try:
             user = db.session.query(User).filter(User.user_id == event.user_id).first()
             if event.user_id in Config.admin_ids or \
-                    Settings.bot and (not user or not user.banned) or \
-                    user.role_id == Role.editor and not user.banned:
+                    Settings.bot and (not user or not user.banned):
                 coincidence = next((
                     rule for rule in self.handlers
                     if rule['condition'](self.vk, event) and
                        ('main' in rule or
-                        'admin' in rule and event.user_id in Config.admin_ids or
-                        'editor' in rule and user.role_id == Role.editor)
+                        'admin' in rule and event.user_id in Config.admin_ids)
                 ))
                 if coincidence:
                     if 'admin' in coincidence and event.user_id in Config.admin_ids:
                         coincidence['admin'](self.vk, event)
-                    elif 'editor' in coincidence and user and user.role_id == Role.editor:
-                        coincidence['editor'](self.vk, event)
                     elif 'main' in coincidence:
                         coincidence['main'](self.vk, event)
         except StopIteration:

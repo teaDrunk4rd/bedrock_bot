@@ -11,7 +11,6 @@ from controllers.controller_essay.normalized_document import NormalizedDocument
 from controllers.controller_essay.word_class import WordClass
 from db.db import db, DB
 from db.models.essay import Essay
-from db.models.role import Role
 from db.models.settings import Settings
 from db.models.user import User
 from multiprocessing.dummy import Pool as ThreadPool, Process
@@ -61,17 +60,16 @@ class ControllerEssay(Controller):
 
     def write_text(self, vk, event):
         user = db.get_user(event.user_id)
-        button_access_key = 'editor' if user.first().role_id == Role.editor else 'main'
         if db.session.query(Essay).filter(Essay.user_id == event.user_id, Essay.processed_text == None).first():
-            vk.send(event.user_id, self.reject_message, self.main_menu_buttons[button_access_key])
+            vk.send(event.user_id, self.reject_message, self.main_menu_buttons['main'])
         else:
             sentences_len = len(re.split(r'[.!?]+', event.text.replace('\n', '')))
             if sentences_len < 10:
-                vk.send(event.user_id, 'чел, тут предложений не так много, давай как-нибудь сам', self.main_menu_buttons[button_access_key])
+                vk.send(event.user_id, 'чел, тут предложений не так много, давай как-нибудь сам', self.main_menu_buttons['main'])
             else:
                 db.add(Essay(event.user_id, event.message_id, event.text))
                 vk.send(event.user_id, 'мне нужно время на прочтение. я тебе обязательно напишу по поводу текста',
-                        self.main_menu_buttons[button_access_key])
+                        self.main_menu_buttons['main'])
                 if not self.calculating:
                     p = Process(target=self.proceed_essays, args=(vk,))
                     p.start()

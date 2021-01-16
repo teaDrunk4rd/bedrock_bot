@@ -21,13 +21,8 @@ class Controller:
 
     main_menu_buttons = {
         'admin': [
-            [Buttons.jokes_check],
+            [Buttons.jokes_check, Buttons.admin_stats],
             [Buttons.action_with_user, Buttons.settings],
-            [Buttons.admin_stats, Buttons.editors]
-        ],
-        'editor': [
-            [Buttons.admin_stats],
-            [Buttons.essay, Buttons.random_post]
         ],
         'main': [  # такой порядок должен быть у кнопок
             [Buttons.make_joke, Buttons.user_stats],  # убрать дублирование

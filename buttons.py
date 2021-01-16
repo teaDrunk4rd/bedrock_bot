@@ -57,10 +57,6 @@ class Buttons:
 
     admin_stats = get_text_button('Статистика', 'secondary', get_command('admin_stats'))
 
-    editors = get_text_button('Редакторы', 'secondary', get_command('editors'))
-    add_editor = get_text_button('Добавить', 'positive', get_command('add_editor'))
-    remove_editor = get_text_button('Убрать', 'negative', get_command('remove_editor'))
-
     settings = get_text_button('Управление ботом', 'primary', get_command('settings'))
     block_bot = get_text_button('Остановить бота', 'negative', get_command('block', 'bot'))
     unblock_bot = get_text_button('Запустить бота', 'positive', get_command('unblock', 'bot'))

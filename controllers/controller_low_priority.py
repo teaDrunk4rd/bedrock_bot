@@ -12,10 +12,6 @@ class ControllerLowPriority(Controller):
                     vk, event, 'стучись разрабу, где-то ошибка',
                     self.main_menu_buttons['admin']
                 ),
-                'editor': lambda vk, event: ControllerBaseRules.send_buttons(
-                    vk, event, 'стучись админу, где-то ошибка',
-                    self.main_menu_buttons['editor']
-                ),
                 'main': lambda vk, event: ControllerBaseRules.send_buttons(
                     vk, event, 'ты молодой, шутливый, тебе все легко. это не то. '
                                'это не Чикатило и даже не архивы спецслужб. сюда лучше не лезть',

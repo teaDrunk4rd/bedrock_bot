@@ -6,7 +6,6 @@ from config import Config
 from db.models.base import Base
 from db.models.joke import Joke
 from db.models.posts import Posts
-from db.models.role import Role
 from db.models.settings import Settings
 from db.models.user import User
 from db.models.essay import Essay
@@ -25,7 +24,6 @@ class DB:
             Base.metadata.create_all(engine, tables=[
                 Settings.__table__,
                 Posts.__table__,
-                Role.__table__,
                 User.__table__,
                 Joke.__table__,
                 Essay.__table__
@@ -56,16 +54,9 @@ class DB:
             posts.count = len(lines)
             posts.items = lines
 
-        if not any(self.session.query(Role)):
-            self.add([
-                Role('Админ', 'admin'),
-                Role('Редактор', 'editor'),
-                Role('Пользователь', 'user'),
-            ])
-        admin_role = self.session.query(Role).filter(Role.key == 'admin').first().id
         for admin_id in Config.admin_ids:
             if not self.session.query(User).filter(User.user_id == admin_id).first():
-                self.add(User(admin_id, admin_role))
+                self.add(User(admin_id))
         self.session.commit()
 
     def __set_consts(self):
@@ -75,10 +66,6 @@ class DB:
         Settings.random_post = self.session.query(Settings).filter(Settings.name == 'random_post').first().value == 'true'
         Settings.user_stats = self.session.query(Settings).filter(Settings.name == 'user_stats').first().value == 'true'
         Settings.donate = self.session.query(Settings).filter(Settings.name == 'donate').first().value == 'true'
-
-        Role.admin = self.session.query(Role).filter(Role.key == 'admin').first().id
-        Role.editor = self.session.query(Role).filter(Role.key == 'editor').first().id
-        Role.user = self.session.query(Role).filter(Role.key == 'user').first().id
 
     def add(self, entity):
         if type(entity) is list:
@@ -94,8 +81,7 @@ class DB:
     def get_user(self, user_id):
         user = self.session.query(User).filter(User.user_id == user_id)
         if not user.first():
-            role_id = Role.user if user_id not in Config.admin_ids else Role.admin
-            self.add(User(user_id, role_id))
+            self.add(User(user_id))
         return user
 
     def get_user_path(self, user_id):
