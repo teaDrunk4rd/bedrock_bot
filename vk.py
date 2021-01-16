@@ -24,7 +24,7 @@ class Vk:
             'attachment': attachments,
             'random_id': random.randint(0, sys.maxsize * sys.maxsize * 2)
         }
-        if buttons:
+        if buttons or buttons == []:
             message.update({'keyboard': str(
                 json.dumps({
                     'one_time': False,

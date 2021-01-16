@@ -4,20 +4,23 @@ from db.db import db
 import random
 from config import Config
 from db.models.posts import Posts
+from db.models.settings import Settings
 
 
 class ControllerRandomPost(Controller):
     def __init__(self):
         self.handlers = [
             {
-                'condition': lambda vk, event:
-                    (self.check_payload(event, Buttons.random_post) or
-                     self.any_equal([
-                         'случайный пост',
-                         'рандомный пост',
-                         'пост',
-                         'кинь пост'
-                     ], event.text.lower())) and db.check_user_current_path(event.user_id, ''),
+                'condition': lambda vk, event: (
+                    self.check_payload(event, Buttons.random_post) or
+                    self.any_equal([
+                        'случайный пост',
+                        'рандомный пост',
+                        'пост',
+                        'кинь пост'
+                    ], event.text.lower())
+                ) and db.check_user_current_path(event.user_id, '')
+                    and self.check_access(Settings.random_post, event.user_id),
                 'main': lambda vk, event: self.send_random_post(vk, event)
             }
         ]

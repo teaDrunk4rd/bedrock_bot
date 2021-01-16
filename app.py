@@ -1,9 +1,12 @@
 import json
 import random
 from vk_api.vk_api import ApiError
+
+from buttons import Buttons
 from config import Config
 from controllers.controller_action_with_user import ControllerActionWithUser
 from controllers.controller_base_rules import ControllerBaseRules
+from controllers.controller_call_admin import ControllerCallAdmin
 from controllers.controller_jokes import ControllerJokes
 from controllers.controller_low_priority import ControllerLowPriority
 from controllers.controller_settings import ControllerSettings
@@ -19,11 +22,11 @@ from multiprocessing.dummy import Process
 
 class App:
     vk = None
-    handlers = None
+    handlers = []
+    special_handlers = []
 
     def __init__(self):
         self.vk = Vk(Config.token)
-        ControllerBaseRules().update_user_buttons()
         controller_essay = ControllerEssay()
         self.handlers = [
             *ControllerBaseRules().handlers,
@@ -31,11 +34,13 @@ class App:
             *ControllerActionWithUser().handlers,
             *ControllerJokes().handlers,
             *ControllerSettings().handlers,
+            *ControllerCallAdmin().handlers,
             *ControllerRandomPost().handlers,
             *controller_essay.handlers,
 
             *ControllerLowPriority().handlers
         ]
+        self.special_handlers = [handler for handler in self.handlers if handler.get('special')]
         p = Process(target=controller_essay.proceed_essays, args=(self.vk,))
         p.start()
 
@@ -44,8 +49,12 @@ class App:
             user = db.session.query(User).filter(User.user_id == event.user_id).first()
             if event.user_id in Config.admin_ids or \
                     Settings.bot and (not user or not user.banned):
+                handlers = self.handlers
+                if user.path == Buttons.get_key(Buttons.call_admin):
+                    handlers = self.special_handlers
+
                 coincidence = next((
-                    rule for rule in self.handlers
+                    rule for rule in handlers
                     if rule['condition'](self.vk, event) and
                        ('main' in rule or
                         'admin' in rule and event.user_id in Config.admin_ids)
@@ -67,11 +76,13 @@ class App:
         while count == 200:
             conversations, count = self.vk.get_unread_conversations()
             for conversation in conversations:
-                self.vk.send(conversation['conversation']['peer']['id'], [
-                    'что-то я залип на некоторое время, можешь повторить что ты там говорил?',
-                    'извини, что не отвечал, делал свои дела. ну ты знаешь, дела обычного бота бедрока: '
-                    'банил всяких гандонов и генерировал мемы. так на чем мы остановились?'
-                ])
+                user = db.session.query(User).filter(User.user_id == conversation['conversation']['peer']['id']).first()
+                if user.path != Buttons.get_key(Buttons.call_admin) and not user.banned:
+                    self.vk.send(user.user_id, [
+                        'что-то я залип на некоторое время, можешь повторить что ты там говорил?',
+                        'извини, что не отвечал, делал свои дела. ну ты знаешь, дела обычного бота бедрока: '
+                        'банил всяких гандонов и генерировал мемы. так на чем мы остановились?'
+                    ])
 
     @staticmethod
     def write_log(vk, message_id, e):

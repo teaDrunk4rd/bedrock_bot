@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, SmallInteger, Boolean, String
 
+from buttons import Buttons
 from db.models.base import Base
 
 
@@ -21,4 +22,6 @@ class User(Base):
             return 'Забанен'
         elif self.apologies_count > 0:
             return 'Извиняется'
+        elif self.path == Buttons.get_key(Buttons.call_admin):
+            return 'Активно разговаривает с админом'
         return 'Активен'

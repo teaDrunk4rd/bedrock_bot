@@ -19,35 +19,74 @@ class Controller:
                 '• также через меня можно поддержать паблик.\n'
     }
 
+    __raw_main_buttons = [  # такой порядок должен быть у кнопок
+        [Buttons.make_joke, Buttons.user_stats],
+        [Buttons.essay, Buttons.random_post],
+        [Buttons.call_admin, Buttons.donate]
+    ]
+
     main_menu_buttons = {
         'admin': [
             [Buttons.jokes_check, Buttons.admin_stats],
             [Buttons.action_with_user, Buttons.settings],
         ],
-        'main': [  # такой порядок должен быть у кнопок
-            [Buttons.make_joke, Buttons.user_stats],  # убрать дублирование
-            [Buttons.essay, Buttons.random_post],
-            [Buttons.donate]
-        ]
+        'main': []
     }
 
+    settings_buttons = [
+        {
+            'block': Buttons.block_bot,
+            'unblock': Buttons.unblock_bot,
+            'setting': 'bot'
+        },
+        {
+            'user_button': Buttons.make_joke,
+            'block': Buttons.block_make_joke,
+            'unblock': Buttons.unblock_make_joke,
+            'setting': 'make_joke'
+        },
+        {
+            'user_button': Buttons.user_stats,
+            'block': Buttons.block_stats,
+            'unblock': Buttons.unblock_stats,
+            'setting': 'user_stats'
+        },
+        {
+            'user_button': Buttons.essay,
+            'block': Buttons.block_essay,
+            'unblock': Buttons.unblock_essay,
+            'setting': 'essay'
+        },
+        {
+            'user_button': Buttons.random_post,
+            'block': Buttons.block_random_post,
+            'unblock': Buttons.unblock_random_post,
+            'setting': 'random_post'
+        },
+        {
+            'user_button': Buttons.call_admin,
+            'block': Buttons.block_call_admin,
+            'unblock': Buttons.unblock_call_admin,
+            'setting': 'call_admin'
+        },
+        {
+            'user_button': Buttons.donate,
+            'block': Buttons.block_donate,
+            'unblock': Buttons.unblock_donate,
+            'setting': 'donate'
+        }
+    ]
+
     def update_user_buttons(self):
-        buttons = [
-            {'button': Buttons.make_joke, 'condition': Settings.make_joke},
-            {'button': Buttons.user_stats, 'condition': Settings.user_stats},
-            {'button': Buttons.essay, 'condition': Settings.essay},
-            {'button': Buttons.random_post, 'condition': Settings.random_post},
-            {'button': Buttons.donate, 'condition': Settings.donate},
-        ]
         first_line, second_line, third_line = [], [], []
-        for button in buttons:
-            if button['condition']:
+        for button in self.settings_buttons:
+            if button.get('user_button') and Settings.get(button['setting']):
                 if len(first_line) < 2:
-                    first_line.append(button['button'])
+                    first_line.append(button['user_button'])
                 elif len(second_line) < 2:
-                    second_line.append(button['button'])
+                    second_line.append(button['user_button'])
                 elif len(third_line) < 2:
-                    third_line.append(button['button'])
+                    third_line.append(button['user_button'])
         self.main_menu_buttons['main'] = [line for line in [first_line, second_line, third_line] if line != []]
 
     @staticmethod

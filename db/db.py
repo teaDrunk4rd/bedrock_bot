@@ -35,15 +35,18 @@ class DB:
         self.session.close()
 
     def __run_seeders(self):
-        if not any(self.session.query(Settings)):
-            self.add([
-                Settings('bot', True),
-                Settings('user_stats', True),
-                Settings('make_joke', True),
-                Settings('essay', True),
-                Settings('random_post', True),
-                Settings('donate', True),
-            ])
+        settings = [
+            Settings('bot', True),
+            Settings('user_stats', True),
+            Settings('make_joke', True),
+            Settings('essay', True),
+            Settings('random_post', True),
+            Settings('call_admin', True),
+            Settings('donate', True),
+        ]
+        for setting in settings:
+            if not any(self.session.query(Settings).filter(Settings.name == setting.name)):
+                self.add(setting)
 
         with open(os.path.join(location, 'posts.txt'), 'r', encoding='utf-8') as f:
             lines = [int(line.strip()) for line in f]
@@ -65,6 +68,7 @@ class DB:
         Settings.essay = self.session.query(Settings).filter(Settings.name == 'essay').first().value == 'true'
         Settings.random_post = self.session.query(Settings).filter(Settings.name == 'random_post').first().value == 'true'
         Settings.user_stats = self.session.query(Settings).filter(Settings.name == 'user_stats').first().value == 'true'
+        Settings.call_admin = self.session.query(Settings).filter(Settings.name == 'call_admin').first().value == 'true'
         Settings.donate = self.session.query(Settings).filter(Settings.name == 'donate').first().value == 'true'
 
     def add(self, entity):

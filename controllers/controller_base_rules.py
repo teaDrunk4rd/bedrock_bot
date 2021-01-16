@@ -49,11 +49,7 @@ class ControllerBaseRules(Controller):
             },
             {
                 'condition': lambda vk, event: 'кнопки подписчика' == event.text.lower(),
-                'admin': lambda vk, event: vk.send(event.user_id, 'as you wish', [
-                    [Buttons.make_joke, Buttons.user_stats],  # убрать дублирование
-                    [Buttons.essay, Buttons.random_post],
-                    [Buttons.donate]
-                ]),
+                'admin': lambda vk, event: vk.send(event.user_id, 'as you wish', self.__raw_main_buttons),
             },
 
             # greetings
@@ -131,7 +127,11 @@ class ControllerBaseRules(Controller):
                     'гей',
                     'ты гей'
                 ], event.text.lower()) and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'и что?')
+                'main': lambda vk, event: vk.send(event.user_id, [
+                    'и что?',
+                    'traps aren\'t gay',
+                    'вообще-то мне нравятся гендерфлюидные вертосексуалы, идентифицирующие себя как боевой вертолет Апач, мерзкая ты хуемразь'
+                ])
             },
 
             {

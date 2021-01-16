@@ -68,6 +68,8 @@ class Buttons:
     unblock_random_post = get_text_button('Запустить случайный пост', 'positive', get_command('unblock', 'random_post'))
     block_stats = get_text_button('Остановить статистику', 'negative', get_command('block', 'user_stats'))
     unblock_stats = get_text_button('Запустить статистику', 'positive', get_command('unblock', 'user_stats'))
+    block_call_admin = get_text_button('Остановить "Поговорить с админом"', 'negative', get_command('block', 'call_admin'))
+    unblock_call_admin = get_text_button('Запустить "Поговорить с админом"', 'positive', get_command('unblock', 'call_admin'))
     block_donate = get_text_button('Остановить донаты', 'negative', get_command('block', 'donate'))
     unblock_donate = get_text_button('Запустить донаты', 'positive', get_command('unblock', 'donate'))
 
@@ -75,9 +77,11 @@ class Buttons:
 
     user_stats = get_text_button('Статистика', 'primary', get_command('user_stats'))
 
-    essay = get_text_button('Реферат', 'primary', get_command('essay'))
+    essay = get_text_button('Реферат', 'positive', get_command('essay'))
 
-    random_post = get_text_button('Случайный пост', 'secondary', get_command('random_post'))
+    random_post = get_text_button('Случайный пост', 'primary', get_command('random_post'))
+
+    call_admin = get_text_button('Вызвать админа', 'primary', get_command('call_admin'))
 
     donate = get_app_button('Поддержать', Config.donate_app_id, f'-{Config.group_id}')
 

@@ -6,40 +6,8 @@ from db.models.settings import Settings
 
 
 class ControllerSettings(Controller):
-    __buttons = [
-        {
-            'block': Buttons.block_bot,
-            'unblock': Buttons.unblock_bot,
-            'setting': 'bot'
-        },
-        {
-            'block': Buttons.block_make_joke,
-            'unblock': Buttons.unblock_make_joke,
-            'setting': 'make_joke'
-        },
-        {
-            'block': Buttons.block_stats,
-            'unblock': Buttons.unblock_stats,
-            'setting': 'user_stats'
-        },
-        {
-            'block': Buttons.block_essay,
-            'unblock': Buttons.unblock_essay,
-            'setting': 'essay'
-        },
-        {
-            'block': Buttons.block_random_post,
-            'unblock': Buttons.unblock_random_post,
-            'setting': 'random_post'
-        },
-        {
-            'block': Buttons.block_donate,
-            'unblock': Buttons.unblock_donate,
-            'setting': 'donate'
-        },
-    ]
-
     def __init__(self):
+        self.update_user_buttons()
         self.handlers = [
             {
                 'condition': lambda vk, event: self.check_payload(event, Buttons.settings),
@@ -54,7 +22,7 @@ class ControllerSettings(Controller):
     def send_buttons(self, vk, event):
         body_buttons = [
             button['block'] if Settings.get(button['setting']) else button['unblock']
-            for button in self.__buttons if button['setting'] != 'bot'
+            for button in self.settings_buttons if button.get('user_button')
         ]
 
         vk.send(event.user_id, 'as you wish', [
@@ -64,15 +32,15 @@ class ControllerSettings(Controller):
         ])
 
     def action_with_section(self, vk, event):
-        try:
-            button = next(
-                button for button in self.__buttons
-                if literal_eval(event.payload).get('args') == Buttons.get_args(button['block'])
-            )
+        button = next(
+            button for button in self.settings_buttons
+            if literal_eval(event.payload).get('args') == Buttons.get_args(button['block'])
+        )
+        if self.__edit_db_enity(button['setting']):
             Settings.change(button['setting'])
             self.update_user_buttons()
             return self.send_buttons(vk, event)
-        except:
+        else:
             raise Exception('проблемс при изменении настройки бота')
 
     def __edit_db_enity(self, args):
