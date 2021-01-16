@@ -1,21 +1,22 @@
 from ast import literal_eval
 from buttons import Buttons
 from controllers.controller import Controller
-from db.db import db
 from db.models.settings import Settings
 
 
 class ControllerSettings(Controller):
     def __init__(self):
+        super().__init__()
+
         self.update_user_buttons()
         self.handlers = [
             {
-                'condition': lambda vk, event: self.check_payload(event, Buttons.settings),
-                'admin': lambda vk, event: self.send_buttons(vk, event),
+                'condition': lambda vk, event, user: self.check_payload(event, Buttons.settings),
+                'admin': lambda vk, event, user: self.send_buttons(vk, event),
             },
             {
-                'condition': lambda vk, event: self.check_payload(event, ['block', 'unblock']),
-                'admin': lambda vk, event: self.action_with_section(vk, event),
+                'condition': lambda vk, event, user: self.check_payload(event, ['block', 'unblock']),
+                'admin': lambda vk, event, user: self.action_with_section(vk, event),
             },
         ]
 
@@ -32,9 +33,10 @@ class ControllerSettings(Controller):
         ])
 
     def action_with_section(self, vk, event):
+        payload_args = literal_eval(event.payload).get('args')
         button = next(
             button for button in self.settings_buttons
-            if literal_eval(event.payload).get('args') == Buttons.get_args(button['block'])
+            if payload_args == Buttons.get_args(button['block'])
         )
         if self.__edit_db_enity(button['setting']):
             Settings.change(button['setting'])
@@ -44,10 +46,10 @@ class ControllerSettings(Controller):
             raise Exception('проблемс при изменении настройки бота')
 
     def __edit_db_enity(self, args):
-        setting = db.session.query(Settings).filter(Settings.name == args).first()
+        setting = self.db.session.query(Settings).filter(Settings.name == args).first()
         if not setting:
             return False
 
         setting.value = not setting.value == 'true'
-        db.session.commit()
+        self.db.session.commit()
         return True

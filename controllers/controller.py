@@ -1,7 +1,7 @@
 from ast import literal_eval
 from buttons import Buttons
 from config import Config
-from db.db import db
+from db.db import DB
 from db.models.settings import Settings
 
 
@@ -77,6 +77,9 @@ class Controller:
         }
     ]
 
+    def __init__(self):
+        self.db = DB()
+
     def update_user_buttons(self):
         first_line, second_line, third_line = [], [], []
         for button in self.settings_buttons:
@@ -112,8 +115,8 @@ class Controller:
         return type(values) is list and any([val for val in values if val == message])
 
     @staticmethod
-    def need_process_message(user_id):
-        return db.get_user_path(user_id) not in [
+    def need_process_message(user):
+        return user.path not in [
             Buttons.get_key(Buttons.make_joke),
             Buttons.get_key(Buttons.essay)
         ]

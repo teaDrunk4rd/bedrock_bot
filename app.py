@@ -13,7 +13,7 @@ from controllers.controller_settings import ControllerSettings
 from controllers.controller_statistics import ControllerStatistics
 from controllers.controller_random_post import ControllerRandomPost
 from controllers.controller_essay.controller_essay import ControllerEssay
-from db.db import db
+from db.db import DB
 from db.models.settings import Settings
 from db.models.user import User
 from vk import Vk
@@ -22,11 +22,13 @@ from multiprocessing.dummy import Process
 
 class App:
     vk = None
+    db = None
     handlers = []
     special_handlers = []
 
     def __init__(self):
         self.vk = Vk(Config.token)
+        self.db = DB(run_seeders=True)
         controller_essay = ControllerEssay()
         self.handlers = [
             *ControllerBaseRules().handlers,
@@ -46,37 +48,40 @@ class App:
 
     def process_new_message(self, event):
         try:
-            user = db.session.query(User).filter(User.user_id == event.user_id).first()
+            user = self.db.session.query(User).filter(User.user_id == event.user_id).first()
+            if not user:
+                user = self.db.add(User(event.user_id))
+
             if event.user_id in Config.admin_ids or \
-                    Settings.bot and (not user or not user.banned):
+                    Settings.bot and not user.banned:
                 handlers = self.handlers
                 if user.path == Buttons.get_key(Buttons.call_admin):
                     handlers = self.special_handlers
 
                 coincidence = next((
                     rule for rule in handlers
-                    if rule['condition'](self.vk, event) and
+                    if rule['condition'](self.vk, event, user) and
                        ('main' in rule or
                         'admin' in rule and event.user_id in Config.admin_ids)
                 ))
                 if coincidence:
                     if 'admin' in coincidence and event.user_id in Config.admin_ids:
-                        coincidence['admin'](self.vk, event)
+                        coincidence['admin'](self.vk, event, user)
                     elif 'main' in coincidence:
-                        coincidence['main'](self.vk, event)
+                        coincidence['main'](self.vk, event, user)
         except StopIteration:
             return None
         except Exception as e:
             self.write_error_message(event.user_id)
             self.write_log(self.vk, event.message_id, e)
-            db.session.rollback()
+            self.db.session.rollback()
 
     def process_unread_messages(self):
         count = 200
         while count == 200:
             conversations, count = self.vk.get_unread_conversations()
             for conversation in conversations:
-                user = db.session.query(User).filter(User.user_id == conversation['conversation']['peer']['id']).first()
+                user = self.db.session.query(User).filter(User.user_id == conversation['conversation']['peer']['id']).first()
                 if user.path != Buttons.get_key(Buttons.call_admin) and not user.banned:
                     self.vk.send(user.user_id, [
                         'что-то я залип на некоторое время, можешь повторить что ты там говорил?',

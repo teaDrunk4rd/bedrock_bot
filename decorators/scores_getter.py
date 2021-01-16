@@ -1,11 +1,11 @@
 
 def scores_getter(function_to_decorate):
-    def a_wrapper_accepting_arguments(self, vk, event):
+    def a_wrapper_accepting_arguments(self, vk, event, user):
         try:
             scores = int(event.text)
             if scores < 0:
                 scores *= -1
-            function_to_decorate(self, vk, event, scores)
+            function_to_decorate(self, vk, event, user, scores)
         except ValueError:
             vk.send(event.user_id, 'ты ввел хуйню какую-то, мне нужно число')
 

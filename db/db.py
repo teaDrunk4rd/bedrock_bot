@@ -1,7 +1,6 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from buttons import Buttons
 from config import Config
 from db.models.base import Base
 from db.models.joke import Joke
@@ -9,6 +8,7 @@ from db.models.posts import Posts
 from db.models.settings import Settings
 from db.models.user import User
 from db.models.essay import Essay
+from sqlalchemy.inspection import inspect
 
 location = '\\'.join(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))).split('\\')[:-1])
 
@@ -16,11 +16,10 @@ location = '\\'.join(os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(
 class DB:
     session = None
 
-    def __init__(self, from_thread=False):
+    def __init__(self, run_seeders=False):
         engine = create_engine(Config.db_link, echo=False)  # TODO: db backups
-        Session = sessionmaker(bind=engine)
-        self.session = scoped_session(Session)()
-        if not from_thread:
+        self.session = scoped_session(sessionmaker(bind=engine))()
+        if run_seeders:
             Base.metadata.create_all(engine, tables=[
                 Settings.__table__,
                 Posts.__table__,
@@ -76,26 +75,17 @@ class DB:
             self.session.add_all(entity)
         else:
             self.session.add(entity)
-        self.session.commit()  # вроде как есть autocommit
+        self.session.commit()
+        return entity
 
     def update(self, entity, updated_value):
-        entity.update(updated_value)
-        self.session.commit()
-
-    def get_user(self, user_id):
-        user = self.session.query(User).filter(User.user_id == user_id)
-        if not user.first():
-            self.add(User(user_id))
-        return user
-
-    def get_user_path(self, user_id):
-        user = self.get_user(user_id).first()
-        return user.path
-
-    def check_user_current_path(self, user_id, path, in_arg=False):
-        if type(path) is dict:  # is button
-            path = Buttons.get_key(path)
-        return path == self.get_user_path(user_id) if not in_arg else path in self.get_user_path(user_id)
-
-
-db = DB()
+        try:
+            entity.update(updated_value)
+        except AttributeError:
+            # setattr(entity, str([key for key in updated_value.keys()][0]).split('.')[1],
+            #         str([key for key in updated_value.values()][0]))
+            primary_key = inspect(type(entity)).primary_key[0].name
+            self.session.query(type(entity)).filter(
+                getattr(type(entity), primary_key) == getattr(entity, primary_key)).update(updated_value)
+        finally:
+            self.session.commit()

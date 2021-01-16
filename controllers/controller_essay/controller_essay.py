@@ -9,7 +9,7 @@ from controllers.controller import Controller
 from controllers.controller_essay.model import Model
 from controllers.controller_essay.normalized_document import NormalizedDocument
 from controllers.controller_essay.word_class import WordClass
-from db.db import db, DB
+from db.db import DB
 from db.models.essay import Essay
 from db.models.settings import Settings
 from db.models.user import User
@@ -20,29 +20,31 @@ location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))
 
 class ControllerEssay(Controller):
     def __init__(self):
+        super().__init__()
+
         self.handlers = [
             {
-                'condition': lambda vk, event: self.check_payload(event, Buttons.essay) and
-                                               self.check_access(Settings.essay, event.user_id),
-                'main': lambda vk, event: self.get_essay_button(vk, event)
+                'condition': lambda vk, event, user:
+                    self.check_payload(event, Buttons.essay) and self.check_access(Settings.essay, event.user_id),
+                'main': lambda vk, event, user: self.get_essay_button(vk, event, user)
             },
             {
-                'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.essay),
-                'main': lambda vk, event: self.write_text(vk, event)
+                'condition': lambda vk, event, user: user.compare_path(Buttons.essay),
+                'main': lambda vk, event, user: self.write_text(vk, event, user)
             },
             {
-                'condition': lambda vk, event: self.any_in([
+                'condition': lambda vk, event, user: self.any_in([
                     'fast test',
                     'fast_test',
-                ], event.text.lower()) and self.need_process_message(event.user_id),
-                'admin': lambda vk, event: self.fast_test_speed(vk, event)
+                ], event.text.lower()) and self.need_process_message(user),
+                'admin': lambda vk, event, user: self.fast_test_speed(vk, event, user)
             },
             {
-                'condition': lambda vk, event: self.any_in([
+                'condition': lambda vk, event, user: self.any_in([
                     'full test',
                     'full_test',
-                ], event.text.lower()) and self.need_process_message(event.user_id),
-                'admin': lambda vk, event: self.full_test_speed(vk, event)
+                ], event.text.lower()) and self.need_process_message(user),
+                'admin': lambda vk, event, user: self.full_test_speed(vk, event, user)
             }
         ]
         self.morph = pymorphy2.MorphAnalyzer()
@@ -50,35 +52,33 @@ class ControllerEssay(Controller):
 
     reject_message = 'знаешь, у меня так много текстов, я еще не прочел твой предыдущий. давай я его сначала прочту, потом отправишь новый.'
 
-    def get_essay_button(self, vk, event):
-        user = db.get_user(event.user_id)
-        if db.session.query(Essay).filter(Essay.user_id == event.user_id, Essay.processed_text == None).first():
+    def get_essay_button(self, vk, event, user):
+        if self.db.session.query(Essay).filter(Essay.user_id == event.user_id, Essay.processed_text == None).first():
             vk.send(event.user_id, self.reject_message)
         else:
-            db.update(user, {User.path: Buttons.get_key(Buttons.essay)})
+            self.db.update(user, {User.path: Buttons.get_key(Buttons.essay)})
             vk.send(event.user_id, 'давай свой текст, прочту его за тебя и в кратце расскажу в чем суть', [[Buttons.to_main]])
 
-    def write_text(self, vk, event):
-        user = db.get_user(event.user_id)
-        if db.session.query(Essay).filter(Essay.user_id == event.user_id, Essay.processed_text == None).first():
+    def write_text(self, vk, event, user):
+        if self.db.session.query(Essay).filter(Essay.user_id == event.user_id, Essay.processed_text == None).first():
             vk.send(event.user_id, self.reject_message, self.main_menu_buttons['main'])
         else:
             sentences_len = len(re.split(r'[.!?]+', event.text.replace('\n', '')))
             if sentences_len < 10:
                 vk.send(event.user_id, 'чел, тут предложений не так много, давай как-нибудь сам', self.main_menu_buttons['main'])
             else:
-                db.add(Essay(event.user_id, event.message_id, event.text))
+                self.db.add(Essay(event.user_id, event.message_id, event.text))
                 vk.send(event.user_id, 'мне нужно время на прочтение. я тебе обязательно напишу по поводу текста',
                         self.main_menu_buttons['main'])
                 if not self.calculating:
                     p = Process(target=self.proceed_essays, args=(vk,))
                     p.start()
-        db.update(user, {User.path: ''})
+        self.db.update(user, {User.path: ''})
 
     def proceed_essays(self, vk, pool_capacity=4, is_test=False):  # run only through Process other than tests
         self.calculating = True
-        while any(db.session.query(Essay).filter(Essay.processed_text == None)):
-            essays = db.session.query(Essay).filter(Essay.processed_text == None).order_by(Essay.id).all()
+        while any(self.db.session.query(Essay).filter(Essay.processed_text == None)):
+            essays = self.db.session.query(Essay).filter(Essay.processed_text == None).order_by(Essay.id).all()
             pool = ThreadPool(pool_capacity)  # Необходимо поэкспериментировать с кол-вом потоков на железе сервера (макс. 4)
             pool.starmap(self.generate_essay, [(vk, essay, is_test) for essay in essays])
             pool.close()
@@ -86,7 +86,7 @@ class ControllerEssay(Controller):
         self.calculating = False
 
     def generate_essay(self, vk, unprocessed_essay, is_test):  # run only through Pool starmap/map
-        new_db_session = DB(from_thread=True)
+        new_db_session = DB()
         unprocessed_essay = new_db_session.session.query(Essay).get(unprocessed_essay.id)
         unprocessed_essay.processed_text = self.get_essay(unprocessed_essay.text)
         if not is_test:
@@ -135,13 +135,13 @@ class ControllerEssay(Controller):
             return f.read().split('\n\n')
 
     def __delete_for_test(self, vk, texts, message):
-        db.session.execute(Essay.__table__.delete().where(Essay.text.in_(texts)))
-        db.session.commit()
+        self.db.session.execute(Essay.__table__.delete().where(Essay.text.in_(texts)))
+        self.db.session.commit()
         vk.send(Config.developer, message)
 
-    def fast_test_speed(self, vk, event):
+    def fast_test_speed(self, vk, event, user):
         texts = self.__add_for_test(vk)
-        db.add([Essay(Config.developer, event.message_id, text) for text in texts])
+        self.db.add([Essay(Config.developer, event.message_id, text) for text in texts])
         try:
             pool_capacity = int(event.text.replace('fast test ', '').replace('fast_test ', ''))
         except:
@@ -153,7 +153,7 @@ class ControllerEssay(Controller):
 
         self.__delete_for_test(vk, texts, f'time_to_proceed({pool_capacity} thr): {time_to_proceed}')
 
-    def full_test_speed(self, vk, event):
+    def full_test_speed(self, vk, event, user):
         texts = self.__add_for_test(vk)
 
         times = []
@@ -161,7 +161,7 @@ class ControllerEssay(Controller):
             average_time = {'pool_capacity': pool_capacity}
             attempt = 5
             for i in range(attempt):
-                db.add([Essay(Config.developer, event.message_id, text) for text in texts])
+                self.db.add([Essay(Config.developer, event.message_id, text) for text in texts])
                 time_to_proceed = time.time()
                 self.proceed_essays(vk, pool_capacity=pool_capacity, is_test=True)
                 time_to_proceed = round(time.time() - time_to_proceed, 2)

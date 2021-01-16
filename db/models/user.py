@@ -25,3 +25,8 @@ class User(Base):
         elif self.path == Buttons.get_key(Buttons.call_admin):
             return 'Активно разговаривает с админом'
         return 'Активен'
+
+    def compare_path(self, path, in_arg=False):
+        if type(path) is dict:  # is button
+            path = Buttons.get_key(path)
+        return self.path == path if not in_arg else path in self.path

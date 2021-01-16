@@ -1,7 +1,6 @@
 from buttons import Buttons
 from config import Config
 from db.models.user import User
-from db.db import db
 from controllers.controller import Controller
 from vk import Vk
 import random
@@ -11,12 +10,14 @@ class ControllerBaseRules(Controller):
     bad_words = []
 
     def __init__(self):
+        super().__init__()
+
         with open('bad_words.txt', 'r', encoding='utf-8') as f:
             self.bad_words = [line.strip() for line in f]
 
         self.handlers = [
             {
-                'condition': lambda vk, event: self.any_equal([
+                'condition': lambda vk, event, user: self.any_equal([
                     'прости',
                     'прости пожалуйста',
                     'прости плиз',
@@ -26,108 +27,110 @@ class ControllerBaseRules(Controller):
                     'сори',
                     'сорямба',
                     'не хотел обидеть тебя'
-                ], event.text.lower()) and self.need_process_message(event.user_id),
-                'main': lambda vk, event: self.get_apology(vk, event)
+                ], event.text.lower()) and self.need_process_message(user),
+                'main': lambda vk, event, user: self.get_apology(vk, event, user)
             },
             {
-                'condition': lambda vk, event:
-                    event.user_id not in Config.admin_ids and
-                    db.session.query(User).filter(User.user_id == event.user_id).first() and
-                    db.session.query(User).filter(User.user_id == event.user_id).first().apologies_count > 0,
-                'main': lambda vk, event: self.demand_apology(vk, event)
+                'condition': lambda vk, event, user: event.user_id not in Config.admin_ids and user.apologies_count > 0,
+                'main': lambda vk, event, user: self.demand_apology(vk, event, user)
             },
 
             {
-                'condition': lambda vk, event: self.check_payload(event, 'start') or 'начать' == event.text.lower(),
-                'admin': lambda vk, event: self.send_buttons(vk, event, self.start_message['admin'], self.main_menu_buttons['admin']),
-                'main': lambda vk, event: self.send_buttons(vk, event, self.start_message['main'], self.main_menu_buttons['main'])
+                'condition': lambda vk, event, user:
+                    self.check_payload(event, 'start') or 'начать' == event.text.lower(),
+                'admin': lambda vk, event, user:
+                    self.send_buttons(vk, event, user, self.start_message['admin'], self.main_menu_buttons['admin']),
+                'main': lambda vk, event, user:
+                    self.send_buttons(vk, event, user, self.start_message['main'], self.main_menu_buttons['main'])
             },
             {
-                'condition': lambda vk, event: 'кнопки' == event.text.lower() or self.check_payload(event, Buttons.to_main),
-                'admin': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['admin']),
-                'main': lambda vk, event: self.send_buttons(vk, event, 'as you wish', self.main_menu_buttons['main'])
+                'condition': lambda vk, event, user:
+                    'кнопки' == event.text.lower() or self.check_payload(event, Buttons.to_main),
+                'admin': lambda vk, event, user:
+                    self.send_buttons(vk, event, user, 'as you wish', self.main_menu_buttons['admin']),
+                'main': lambda vk, event, user:
+                    self.send_buttons(vk, event, user, 'as you wish', self.main_menu_buttons['main'])
             },
             {
-                'condition': lambda vk, event: 'кнопки подписчика' == event.text.lower(),
-                'admin': lambda vk, event: vk.send(event.user_id, 'as you wish', self.__raw_main_buttons),
+                'condition': lambda vk, event, user: 'кнопки подписчика' == event.text.lower(),
+                'admin': lambda vk, event, user: vk.send(event.user_id, 'as you wish', self.__raw_main_buttons),
             },
 
             # greetings
             {
-                'condition': lambda vk, event: 'привет' == event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'приветствую')
+                'condition': lambda vk, event, user:
+                    'привет' == event.text.lower() and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, 'приветствую')
             },
             {
-                'condition': lambda vk, event: 'здарова' == event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'здарова')
+                'condition': lambda vk, event, user:
+                    'здарова' == event.text.lower() and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, 'здарова')
             },
             {
-                'condition': lambda vk, event: 'здорова' == event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'кто здорова? в любом случае это хорошо.')
+                'condition': lambda vk, event, user:
+                    'здравствуйте' == event.text.lower() and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, 'ну здравствуй')
             },
             {
-                'condition': lambda vk, event: 'здравствуйте' == event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'ну здравствуй')
+                'condition': lambda vk, event, user:
+                    'приветствую' == event.text.lower() and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, '*приветственное сообщение*')
             },
             {
-                'condition': lambda vk, event: 'приветствую' == event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, '*приветственное сообщение*')
+                'condition': lambda vk, event, user:
+                    'hi' == event.text.lower() and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, 'що Нi?')
             },
             {
-                'condition': lambda vk, event: 'hi' == event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'що Нi?')
+                'condition': lambda vk, event, user:
+                    'hello' == event.text.lower() and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, 'oh, u from england?')
             },
             {
-                'condition': lambda vk, event: 'hello' == event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'oh, u from england?')
+                'condition': lambda vk, event, user:
+                    'здравствуйте, привет' == event.text.lower() and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, 'привет, денис')
             },
             {
-                'condition': lambda vk, event: 'здравствуйте, привет' == event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'денис')
+                'condition': lambda vk, event, user: 'ку' == event.text.lower() and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, 'ку')
             },
             {
-                'condition': lambda vk, event: 'ку' == event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'ку')
+                'condition': lambda vk, event, user: 'ку-ку' == event.text.lower() and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, 'ку-ку, ёпта')
             },
             {
-                'condition': lambda vk, event: 'ку-ку' == event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'ку-ку, ёпта')
-            },
-            {
-                'condition': lambda vk, event: 'хай' == event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'это почти мат, но здравствуй')
-            },
-            {
-                'condition': lambda vk, event: 'алло' == event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'привет, я за рулем — не могу говорить')
+                'condition': lambda vk, event, user: 'алло' == event.text.lower() and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, 'привет, я за рулем — не могу говорить')
             },
             # end greetings
 
             {
-                'condition': lambda vk, event: self.any_equal([
+                'condition': lambda vk, event, user: self.any_equal([
                     'классный паблик',
                     'охуенный паблик',
                     'пиздатый паблик',
                     'паблик класс'
-                ], event.text.lower()) and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'спасибо, солнышко')
+                ], event.text.lower()) and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, 'спасибо, солнышко')
             },
             {
-                'condition': lambda vk, event:
-                    self.any_in(self.bad_words, event.text.lower()) and self.need_process_message(event.user_id),
-                'main': lambda vk, event: self.insult(vk, event)
+                'condition': lambda vk, event, user:
+                    self.any_in(self.bad_words, event.text.lower()) and self.need_process_message(user),
+                'main': lambda vk, event, user: self.insult(vk, event, user)
             },
             {
-                'condition': lambda vk, event:
-                    'ты пидор' in event.text.lower() and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send_message_sticker(event.user_id, 'а может ты пидор?', 49)
+                'condition': lambda vk, event, user:
+                    'ты пидор' in event.text.lower() and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send_message_sticker(event.user_id, 'а может ты пидор?', 49)
             },
             {
-                'condition': lambda vk, event: self.any_equal([
+                'condition': lambda vk, event, user: self.any_equal([
                     'гей',
                     'ты гей'
-                ], event.text.lower()) and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, [
+                ], event.text.lower()) and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, [
                     'и что?',
                     'traps aren\'t gay',
                     'вообще-то мне нравятся гендерфлюидные вертосексуалы, идентифицирующие себя как боевой вертолет Апач, мерзкая ты хуемразь'
@@ -135,28 +138,30 @@ class ControllerBaseRules(Controller):
             },
 
             {
-                'condition': lambda vk, event: self.any_equal([
+                'condition': lambda vk, event, user: self.any_equal([
                     'ришат зеленый',
                     'зишат реленый'
-                ], event.text.lower()) and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'администрация')
+                ], event.text.lower()) and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, 'администрация')
             },
             {
-                'condition': lambda vk, event: event.text.lower() == 'ришат салихов' and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'ничего про это не знаю')
+                'condition': lambda vk, event, user:
+                    event.text.lower() == 'ришат салихов' and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, 'ничего про это не знаю')
             },
             {
-                'condition': lambda vk, event: self.any_equal([
+                'condition': lambda vk, event, user: self.any_equal([
                     'кроватькамень',
                     'бедрок',
                     'bedrock',
-                ], event.text.lower()) and self.need_process_message(event.user_id),
-                'main': lambda vk, event: vk.send(event.user_id, 'а?')
+                ], event.text.lower()) and self.need_process_message(user),
+                'main': lambda vk, event, user: vk.send(event.user_id, 'а?')
             },
 
             {
-                'condition': lambda vk, event: Vk.is_audio_msg(event) and db.check_user_current_path(event.user_id, ''),
-                'main': lambda vk, event: vk.send(event.user_id, [
+                'condition': lambda vk, event, user:
+                    Vk.is_audio_msg(event) and user.compare_path(''),
+                'main': lambda vk, event, user: vk.send(event.user_id, [
                     'не, ну голосовые я точно слушать не буду',
                     'я создавался точно не для того, чтобы слушать голосовые',
                     'даже не пытайся отправлять мне голосовые',
@@ -174,8 +179,8 @@ class ControllerBaseRules(Controller):
                 ])
             },
             {
-                'condition': lambda vk, event: Vk.is_audio(event) and db.check_user_current_path(event.user_id, ''),
-                'main': lambda vk, event: vk.send(
+                'condition': lambda vk, event, user: Vk.is_audio(event) and user.compare_path(''),
+                'main': lambda vk, event, user: vk.send(
                     event.user_id, '',
                     attachments=[
                         f'doc-{Config.group_id}_{Config.audio_gifs[random.randint(0, len(Config.audio_gifs) - 1)]}'
@@ -183,8 +188,8 @@ class ControllerBaseRules(Controller):
                 )
             },
             {
-                'condition': lambda vk, event: Vk.is_photo(event) and db.check_user_current_path(event.user_id, ''),
-                'main': lambda vk, event: vk.send(event.user_id, [
+                'condition': lambda vk, event, user: Vk.is_photo(event) and user.compare_path(''),
+                'main': lambda vk, event, user: vk.send(event.user_id, [
                     '0/10 ААААААААААА, мои биомеханические глаза, удали фотку быстрее!!!',
                     'полный пиздец. 0/10',
                     '1/10 не отправляй мне такие фотографии больше',
@@ -210,8 +215,8 @@ class ControllerBaseRules(Controller):
                 ])
             },
             {
-                'condition': lambda vk, event: Vk.is_video(event) and db.check_user_current_path(event.user_id, ''),
-                'main': lambda vk, event: vk.send(event.user_id, [
+                'condition': lambda vk, event, user: Vk.is_video(event) and user.compare_path(''),
+                'main': lambda vk, event, user: vk.send(event.user_id, [
                     'я не буду это смотреть.',
                     'не-не-не, давай без этого',
                     'видео? понимаю.',
@@ -221,16 +226,13 @@ class ControllerBaseRules(Controller):
             }
         ]
 
-    @staticmethod
-    def send_buttons(vk, event, message, buttons=None):
-        user = db.get_user(event.user_id)
-        db.update(user, {User.path: ''})
+    def send_buttons(self, vk, event, user, message, buttons):
+        self.db.update(user, {User.path: ''})
         vk.send(event.user_id, message, buttons)
 
-    def insult(self, vk, event):
-        user = db.get_user(event.user_id)
+    def insult(self, vk, event, user):
         if event.user_id not in Config.admin_ids:
-            db.update(user, {User.apologies_count: User.apologies_count + 1})
+            self.db.update(user, {User.apologies_count: User.apologies_count + 1})
 
         if random.randint(1, 10) == 1:
             vk.send(event.user_id, '', attachments=f'photo-{Config.group_id}_{Config.uno_card}')
@@ -260,9 +262,8 @@ class ControllerBaseRules(Controller):
             vk.send(event.user_id, messages)
 
     @staticmethod
-    def demand_apology(vk, event):
-        user = db.session.query(User).filter(User.user_id == event.user_id).first()
-        if event.user_id not in Config.admin_ids and user:
+    def demand_apology(vk, event, user):
+        if event.user_id not in Config.admin_ids:
             messages = next(iter([
                 msg['messages'] for msg in [
                     {
@@ -295,11 +296,9 @@ class ControllerBaseRules(Controller):
             ]))
             vk.send(event.user_id, messages)
 
-    def get_apology(self, vk, event):
-        user = db.session.query(User).filter(User.user_id == event.user_id)
-        if user.first():
-            if user.first().apologies_count != 0:
-                db.update(user, {User.apologies_count: 0})
-                vk.send(event.user_id, 'да ладно уж, чего там. ты сам прости меня', self.main_menu_buttons['main'])
-            else:
-                vk.send(event.user_id, 'чеееел, за что ты извиняешься? забей')
+    def get_apology(self, vk, event, user):
+        if user.apologies_count != 0:
+            self.db.update(user, {User.apologies_count: 0})
+            vk.send(event.user_id, 'да ладно уж, чего там. ты сам прости меня', self.main_menu_buttons['main'])
+        else:
+            vk.send(event.user_id, 'чеееел, за что ты извиняешься? забей')
