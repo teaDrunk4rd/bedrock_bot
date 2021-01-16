@@ -6,7 +6,6 @@ from controllers.controller_action_with_user import ControllerActionWithUser
 from controllers.controller_base_rules import ControllerBaseRules
 from controllers.controller_jokes import ControllerJokes
 from controllers.controller_low_priority import ControllerLowPriority
-from controllers.controller_screens import ControllerScreens
 from controllers.controller_settings import ControllerSettings
 from controllers.controller_statistics import ControllerStatistics
 from controllers.controller_random_post import ControllerRandomPost
@@ -30,7 +29,6 @@ class App:
         controller_essay = ControllerEssay()
         self.handlers = [
             *ControllerBaseRules().handlers,
-            *ControllerScreens().handlers,
             *ControllerStatistics().handlers,
             *ControllerActionWithUser().handlers,
             *ControllerJokes().handlers,

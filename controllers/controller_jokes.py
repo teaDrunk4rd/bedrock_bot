@@ -23,20 +23,12 @@ class ControllerJokes(Controller):
                 'admin': lambda vk, event: self.check_next_joke(vk, event)
             },
             {
-                'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_good),
-                'admin': lambda vk, event: self.confirm_joke_button(vk, event)
+                'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_set_scores),
+                'admin': lambda vk, event: self.set_scores_button(vk, event)
             },
             {
-                'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.jokes_good),
-                'admin': lambda vk, event: self.confirm_joke(vk, event)
-            },
-            {
-                'condition': lambda vk, event: self.check_payload(event, Buttons.jokes_cringe),
-                'admin': lambda vk, event: self.reject_joke_button(vk, event)
-            },
-            {
-                'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.jokes_cringe),
-                'admin': lambda vk, event: self.reject_joke(vk, event)
+                'condition': lambda vk, event: db.check_user_current_path(event.user_id, Buttons.jokes_set_scores),
+                'admin': lambda vk, event: self.set_scores(vk, event)
             },
 
             {
@@ -66,8 +58,8 @@ class ControllerJokes(Controller):
             joke = jokes[0]
             vk.send(
                 event.user_id, '',
-                [[Buttons.jokes_good, Buttons.jokes_cringe],
-                 [Buttons.jokes_next, Buttons.to_main]], joke.message_id
+                [[Buttons.jokes_set_scores, Buttons.jokes_next], [Buttons.to_main]],
+                joke.message_id
             )
         else:
             self.__over(vk, event)
@@ -75,7 +67,7 @@ class ControllerJokes(Controller):
     def check_joke_first(self, vk, event):
         jokes = self.__get_jokes()
         if any(jokes):
-            vk.send(event.user_id, 'ты можешь добавить или отнять баллы за шутку, учитывай, что 1 скрин — 1 балл')
+            vk.send(event.user_id, 'оцени прикол по 10-бальной шкале')
         self.check_joke(vk, event)
 
     def joke_refresh(self, vk, event):
@@ -90,8 +82,7 @@ class ControllerJokes(Controller):
             joke.viewed = True
             vk.send(
                 joke.user_id,
-                f'твою шутку оценили на 0 очков\n'
-                f'на данный момент у тебя {joke.user.scores} {self.plural_form(joke.user.scores, "очко", "очка", "очков")}',
+                f'твою шутку оценили на 0 баллов\n',
                 forward_messages=joke.message_id)
             db.session.commit()
             self.check_joke(vk, event)
@@ -99,48 +90,21 @@ class ControllerJokes(Controller):
             self.__over(vk, event)
 
     @staticmethod
-    def confirm_joke_button(vk, event):
+    def set_scores_button(vk, event):
         user = db.get_user(event.user_id)
-        db.update(user, {User.path: Buttons.get_key(Buttons.jokes_good)})
-        vk.send(event.user_id, 'сколько очков добавить?', [[Buttons.jokes_refresh]])
-
-    @staticmethod
-    def reject_joke_button(vk, event):
-        user = db.get_user(event.user_id)
-        db.update(user, {User.path: Buttons.get_key(Buttons.jokes_cringe)})
-        vk.send(event.user_id, 'сколько очков отнять?', [[Buttons.jokes_refresh]])
+        db.update(user, {User.path: Buttons.get_key(Buttons.jokes_set_scores)})
+        vk.send(event.user_id, 'сколько баллов поставишь шутнику?', [[Buttons.jokes_refresh]])
 
     @scores_getter
-    def confirm_joke(self, vk, event, scores):
+    def set_scores(self, vk, event, scores):
         jokes = self.__get_jokes()
         if any(jokes):
             joke = jokes[0]
             joke.viewed = True
             joke.score = scores
-            db.update(db.get_user(joke.user_id), {User.scores: User.scores + scores})
-            message_prefix = 'поздравляю, ' if scores > 0 else ''
+            message_prefix = 'поздравляю, ' if scores > 5 else ''
             vk.send(joke.user_id,
-                    f'{message_prefix}твою шутку оценили на {scores} {self.plural_form(scores, "очко", "очка", "очков")}\n'
-                    f'на данный момент у тебя {joke.user.scores} {self.plural_form(joke.user.scores, "очко", "очка", "очков")}',
-                    forward_messages=joke.message_id)
-            user = db.get_user(event.user_id)
-            db.update(user, {User.path: ''})
-            self.check_joke(vk, event)
-        else:
-            self.__over(vk, event)
-
-    @scores_getter
-    def reject_joke(self, vk, event, scores):
-        jokes = self.__get_jokes()
-        if any(jokes):
-            joke = jokes[0]
-            joke.viewed = True
-            joke.score = scores * -1
-            db.update(db.get_user(joke.user_id), {User.scores: User.scores - scores})
-            scores_str = f'-{scores}' if scores != 0 else scores
-            vk.send(joke.user_id,
-                    f'твою шутку оценили на {scores_str} {self.plural_form(scores, "очко", "очка", "очков")}\n'
-                    f'на данный момент у тебя {joke.user.scores} {self.plural_form(joke.user.scores, "очко", "очка", "очков")}',
+                    f'{message_prefix}твою шутку оценили на {scores} {self.plural_form(scores, "балл", "балла", "баллов")}\n',
                     forward_messages=joke.message_id)
             user = db.get_user(event.user_id)
             db.update(user, {User.path: ''})
@@ -152,8 +116,7 @@ class ControllerJokes(Controller):
     def make_admin_laugh_button(vk, event):
         user = db.get_user(event.user_id)
         db.update(user, {User.path: Buttons.get_key(Buttons.make_joke)})
-        message = 'присылай шутку, админ оценит и добавит баллы, но если скинешь кринж — то баллы отнимут.' \
-                  ' юмор — несомненно субъективен, но ты можешь рискнуть'
+        message = 'присылай шутку, передам её админу и он оценит'
         if any(user.first().jokes):
             message = [message, 'шути']
         vk.send(event.user_id, message, [[Buttons.to_main]])

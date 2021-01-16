@@ -10,7 +10,6 @@ class User(Base):
     role_id = Column(Integer, ForeignKey('roles.id'), nullable=False)
     apologies_count = Column(SmallInteger, default=0)
     banned = Column(Boolean, default=False)
-    scores = Column(Integer, default=0)
     path = Column(String, default='')
 
     role = relationship('Role', backref='users')

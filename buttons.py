@@ -46,23 +46,14 @@ def get_command(key, args=None):
 class Buttons:
     to_main = get_text_button('Назад', 'secondary', get_command('to_main'))
 
-    screen_check = get_text_button('Проверка скринов', 'primary', get_command('screen_check'))
-    screen_refresh = get_text_button('Назад', 'secondary', get_command('screen_refresh'))
-    screen_confirm = get_text_button('Подтвердить', 'positive', get_command('screen_confirm'))
-    screen_reject = get_text_button('Отклонить', 'negative', get_command('screen_reject'))
-    comment_screen_reject = get_text_button('Отклонить с комментом', 'negative', get_command('comment_screen_reject'))
-
-    jokes_check = get_text_button('Проверка приколов', 'primary', get_command('jokes_check'))
+    jokes_check = get_text_button('Приколы подписоты', 'primary', get_command('jokes_check'))
     jokes_refresh = get_text_button('Назад', 'secondary', get_command('jokes_refresh'))
-    jokes_good = get_text_button('Godnota', 'positive', get_command('jokes_good'))
-    jokes_cringe = get_text_button('Cringe', 'negative', get_command('jokes_cringe'))
+    jokes_set_scores = get_text_button('Godnota', 'positive', get_command('jokes_set_scores'))
     jokes_next = get_text_button('Следующая', 'secondary', get_command('jokes_next'))
 
     action_with_user = get_text_button('Действия с пользователем', 'primary', get_command('action_with_user'))
     unban_user = get_text_button('Разбанить', 'positive', get_command('unban_user'))
     ban_user = get_text_button('Забанить', 'negative', get_command('ban_user'))
-    add_scores = get_text_button('Добавить очки', 'positive', get_command('add_scores'))
-    remove_scores = get_text_button('Отнять очки', 'negative', get_command('remove_scores'))
 
     admin_stats = get_text_button('Статистика', 'secondary', get_command('admin_stats'))
 
@@ -73,8 +64,6 @@ class Buttons:
     settings = get_text_button('Управление ботом', 'primary', get_command('settings'))
     block_bot = get_text_button('Остановить бота', 'negative', get_command('block', 'bot'))
     unblock_bot = get_text_button('Запустить бота', 'positive', get_command('unblock', 'bot'))
-    block_screen = get_text_button('Остановить скрины', 'negative', get_command('block', 'screen'))
-    unblock_screen = get_text_button('Запустить скрины', 'positive', get_command('unblock', 'screen'))
     block_make_joke = get_text_button('Остановить "Насмеши админа"', 'negative', get_command('block', 'make_joke'))
     unblock_make_joke = get_text_button('Запустить "Насмеши админа"', 'positive', get_command('unblock', 'make_joke'))
     block_essay = get_text_button('Остановить рефераты', 'negative', get_command('block', 'essay'))
@@ -85,10 +74,6 @@ class Buttons:
     unblock_stats = get_text_button('Запустить статистику', 'positive', get_command('unblock', 'user_stats'))
     block_donate = get_text_button('Остановить донаты', 'negative', get_command('block', 'donate'))
     unblock_donate = get_text_button('Запустить донаты', 'positive', get_command('unblock', 'donate'))
-    block_extended_screen_check = get_text_button('Отключить расширенную проверку скринов', 'negative', get_command('block', 'extended_screen_check'))
-    unblock_extended_screen_check = get_text_button('Включить расширенную проверку скринов', 'positive', get_command('unblock', 'extended_screen_check'))
-
-    send_screen = get_text_button('Кинуть скрин', 'positive', get_command('send_screen'))
 
     make_joke = get_text_button('Насмешить админа', 'positive', get_command('make_joke'))
 

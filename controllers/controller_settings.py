@@ -6,15 +6,37 @@ from db.models.settings import Settings
 
 
 class ControllerSettings(Controller):
-    __sections_args = [
-        Buttons.get_args(Buttons.block_bot),
-        Buttons.get_args(Buttons.block_screen),
-        Buttons.get_args(Buttons.block_make_joke),
-        Buttons.get_args(Buttons.block_essay),
-        Buttons.get_args(Buttons.block_random_post),
-        Buttons.get_args(Buttons.block_stats),
-        Buttons.get_args(Buttons.block_donate),
-        Buttons.get_args(Buttons.block_extended_screen_check)
+    __buttons = [
+        {
+            'block': Buttons.block_bot,
+            'unblock': Buttons.unblock_bot,
+            'setting': 'bot'
+        },
+        {
+            'block': Buttons.block_make_joke,
+            'unblock': Buttons.unblock_make_joke,
+            'setting': 'make_joke'
+        },
+        {
+            'block': Buttons.block_stats,
+            'unblock': Buttons.unblock_stats,
+            'setting': 'user_stats'
+        },
+        {
+            'block': Buttons.block_essay,
+            'unblock': Buttons.unblock_essay,
+            'setting': 'essay'
+        },
+        {
+            'block': Buttons.block_random_post,
+            'unblock': Buttons.unblock_random_post,
+            'setting': 'random_post'
+        },
+        {
+            'block': Buttons.block_donate,
+            'unblock': Buttons.unblock_donate,
+            'setting': 'donate'
+        },
     ]
 
     def __init__(self):
@@ -29,52 +51,35 @@ class ControllerSettings(Controller):
             },
         ]
 
-    @staticmethod
-    def send_buttons(vk, event, message='as you wish'):
-        buttons = [
-            [Buttons.block_bot if Settings.bot else Buttons.unblock_bot],
-            [Buttons.block_screen if Settings.screen else Buttons.unblock_screen,
-             Buttons.block_make_joke if Settings.make_joke else Buttons.unblock_make_joke],
-            [Buttons.block_essay if Settings.essay else Buttons.unblock_essay,
-             Buttons.block_random_post if Settings.random_post else Buttons.unblock_random_post],
-            [Buttons.block_stats if Settings.user_stats else Buttons.unblock_stats,
-             Buttons.block_donate if Settings.donate else Buttons.unblock_donate],
-            [Buttons.block_extended_screen_check if Settings.extended_screen_check else Buttons.unblock_extended_screen_check],
-            [Buttons.to_main]
+    def send_buttons(self, vk, event):
+        body_buttons = [
+            button['block'] if Settings.get(button['setting']) else button['unblock']
+            for button in self.__buttons if button['setting'] != 'bot'
         ]
-        vk.send(event.user_id, message, buttons)
+
+        vk.send(event.user_id, 'as you wish', [
+            [Buttons.block_bot if Settings.bot else Buttons.unblock_bot],
+            *[[button for button in body_buttons][i:i + 2] for i in range(0, len(body_buttons), 2)],
+            [Buttons.to_main]
+        ])
 
     def action_with_section(self, vk, event):
-        args = literal_eval(event.payload).get('args')
-        if args in self.__sections_args and self.__edit_db_enity(args):
-            if args == self.__sections_args[1]:
-                Settings.screen = not Settings.screen
-            elif args == self.__sections_args[2]:
-                Settings.make_joke = not Settings.make_joke
-            elif args == self.__sections_args[3]:
-                Settings.essay = not Settings.essay
-            elif args == self.__sections_args[4]:
-                Settings.random_post = not Settings.random_post
-            elif args == self.__sections_args[5]:
-                Settings.user_stats = not Settings.user_stats
-            elif args == self.__sections_args[6]:
-                Settings.donate = not Settings.donate
-            elif args == self.__sections_args[7]:
-                Settings.extended_screen_check = not Settings.extended_screen_check
-            elif args == self.__sections_args[0]:
-                Settings.bot = not Settings.bot
-            else:
-                raise Exception('проблемс с args при изменении настроек бота')
+        try:
+            button = next(
+                button for button in self.__buttons
+                if literal_eval(event.payload).get('args') == Buttons.get_args(button['block'])
+            )
+            Settings.change(button['setting'])
             self.update_user_buttons()
             return self.send_buttons(vk, event)
-        else:
+        except:
             raise Exception('проблемс при изменении настройки бота')
 
     def __edit_db_enity(self, args):
         setting = db.session.query(Settings).filter(Settings.name == args).first()
-        if setting:
-            setting.value = not setting.value == 'true'
-            db.session.commit()
-            return True
-        else:
+        if not setting:
             return False
+
+        setting.value = not setting.value == 'true'
+        db.session.commit()
+        return True

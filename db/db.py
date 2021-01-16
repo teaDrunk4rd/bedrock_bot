@@ -5,8 +5,6 @@ from buttons import Buttons
 from config import Config
 from db.models.base import Base
 from db.models.joke import Joke
-from db.models.picture import Picture
-from db.models.picture_status import PictureStatus
 from db.models.posts import Posts
 from db.models.role import Role
 from db.models.settings import Settings
@@ -26,13 +24,11 @@ class DB:
         if not from_thread:
             Base.metadata.create_all(engine, tables=[
                 Settings.__table__,
-                PictureStatus.__table__,
                 Posts.__table__,
                 Role.__table__,
                 User.__table__,
                 Joke.__table__,
-                Essay.__table__,
-                Picture.__table__
+                Essay.__table__
             ])
             self.__run_seeders()
             self.__set_consts()
@@ -41,23 +37,14 @@ class DB:
         self.session.close()
 
     def __run_seeders(self):
-        if not any(self.session.query(PictureStatus)):
-            self.add([
-                PictureStatus('Не проверен', 'not_checked'),
-                PictureStatus('Принят', 'confirmed'),
-                PictureStatus('Отклонен', 'rejected')
-            ])
-
         if not any(self.session.query(Settings)):
             self.add([
                 Settings('bot', True),
-                Settings('screen', True),
                 Settings('user_stats', True),
                 Settings('make_joke', True),
                 Settings('essay', True),
                 Settings('random_post', True),
                 Settings('donate', True),
-                Settings('extended_screen_check', True)
             ])
 
         with open(os.path.join(location, 'posts.txt'), 'r', encoding='utf-8') as f:
@@ -82,18 +69,12 @@ class DB:
         self.session.commit()
 
     def __set_consts(self):
-        PictureStatus.not_checked = self.session.query(PictureStatus).filter(PictureStatus.key == 'not_checked').first().id
-        PictureStatus.confirmed = self.session.query(PictureStatus).filter(PictureStatus.key == 'confirmed').first().id
-        PictureStatus.rejected = self.session.query(PictureStatus).filter(PictureStatus.key == 'rejected').first().id
-
         Settings.bot = self.session.query(Settings).filter(Settings.name == 'bot').first().value == 'true'
-        Settings.screen = self.session.query(Settings).filter(Settings.name == 'screen').first().value == 'true'
         Settings.make_joke = self.session.query(Settings).filter(Settings.name == 'make_joke').first().value == 'true'
         Settings.essay = self.session.query(Settings).filter(Settings.name == 'essay').first().value == 'true'
         Settings.random_post = self.session.query(Settings).filter(Settings.name == 'random_post').first().value == 'true'
         Settings.user_stats = self.session.query(Settings).filter(Settings.name == 'user_stats').first().value == 'true'
         Settings.donate = self.session.query(Settings).filter(Settings.name == 'donate').first().value == 'true'
-        Settings.extended_screen_check = self.session.query(Settings).filter(Settings.name == 'extended_screen_check').first().value == 'true'
 
         Role.admin = self.session.query(Role).filter(Role.key == 'admin').first().id
         Role.editor = self.session.query(Role).filter(Role.key == 'editor').first().id

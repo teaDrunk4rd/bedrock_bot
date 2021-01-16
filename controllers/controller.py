@@ -12,39 +12,32 @@ class Controller:
         'admin': 'здравствуйте, хозяин',
         'main': 'привет, я — бот бедрока.\n'
                 'вот что я могу:\n'
-                '• передавать твои скрины и приколдесы админу (в контексте розыгрыша)\n'
-                '• реферировать текст, то есть сокращать и сжимать его, выдавая основную суть в 3 предложениях.\n'
-                '• отправлять случайные посты из бедрока.\n'
-                '• кидать фото на оценку. для этого нужно кинуть фотку в основном меню.\n'
-                '• так же, через меня можно поддержать паблик.\n'
+                '• передавать твои приколдесы админу.\n'
+                '• реферировать текст: сокращать и сжимать его, выдавая основную суть в 3 предложениях.\n'
+                '• отправлять любимые посты из бедрока.\n'
+                '• оценивать твои фотографии. для этого нужно кинуть фотку в основном меню.\n'
+                '• также через меня можно поддержать паблик.\n'
     }
 
     main_menu_buttons = {
         'admin': [
-            [Buttons.screen_check, Buttons.jokes_check],
+            [Buttons.jokes_check],
             [Buttons.action_with_user, Buttons.settings],
             [Buttons.admin_stats, Buttons.editors]
         ],
         'editor': [
-            [Buttons.screen_check, Buttons.admin_stats],
+            [Buttons.admin_stats],
             [Buttons.essay, Buttons.random_post]
         ],
         'main': [  # такой порядок должен быть у кнопок
-            [Buttons.send_screen, Buttons.make_joke],
-            [Buttons.user_stats, Buttons.essay],
-            [Buttons.random_post, Buttons.donate]
+            [Buttons.make_joke, Buttons.user_stats],  # убрать дублирование
+            [Buttons.essay, Buttons.random_post],
+            [Buttons.donate]
         ]
     }
 
-    action_with_users_buttons = [
-        [Buttons.ban_user, Buttons.unban_user],
-        [Buttons.add_scores, Buttons.remove_scores],
-        [Buttons.to_main]
-    ]
-
     def update_user_buttons(self):
         buttons = [
-            {'button': Buttons.send_screen, 'condition': Settings.screen},
             {'button': Buttons.make_joke, 'condition': Settings.make_joke},
             {'button': Buttons.user_stats, 'condition': Settings.user_stats},
             {'button': Buttons.essay, 'condition': Settings.essay},
@@ -76,16 +69,6 @@ class Controller:
 
         return hasattr(event, 'payload') and literal_eval(event.payload).get('command') == key
 
-    # @staticmethod
-    # def check_payload(event, key):
-    #     condition = lambda payload, key: literal_eval(event.payload).get('command') == key
-    #     if type(key) is dict:  # is button
-    #         condition = lambda payload, key: literal_eval(event.payload).get('command') == Buttons.get_key(key)
-    #     elif type(key) is list:
-    #         condition = lambda payload, keys: \
-    #             literal_eval(event.payload).get('command') in [Buttons.get_key(key) for key in keys]
-    #     return hasattr(event, 'payload') and condition(event.payload, key)
-
     @staticmethod
     def any_in(values, message):
         return type(values) is list and any([val for val in values if val in message])
@@ -98,7 +81,6 @@ class Controller:
     def need_process_message(user_id):
         return db.get_user_path(user_id) not in [
             Buttons.get_key(Buttons.make_joke),
-            Buttons.get_key(Buttons.comment_screen_reject),
             Buttons.get_key(Buttons.essay)
         ]
 
