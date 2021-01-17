@@ -50,9 +50,10 @@ class App:
     def process_new_message(self, event):
         try:
             user = self.db.session.query(User).filter(User.user_id == event.user_id).first()
-            self.db.update(user, {User.last_interaction_date: datetime.today()})
             if not user:
                 user = self.db.add(User(event.user_id))
+            else:
+                self.db.update(user, {User.last_interaction_date: datetime.today()})
 
             if event.user_id in Config.admin_ids or \
                     Settings.bot and not user.banned:
